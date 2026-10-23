@@ -1,0 +1,140 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+
+@theme {
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+}
+
+@layer base {
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f4f4f5;
+    --text-primary: #000000;
+    --text-secondary: #52525b;
+    --accent: #000000;
+    --theme-color: #000000;
+    --theme-text-color: #ffffff;
+    --player-bg: rgba(255, 255, 255, 0.95);
+  }
+
+  .dark {
+    --bg-primary: #000000;
+    --bg-secondary: #0c0c0c;
+    --text-primary: #ffffff;
+    --text-secondary: #a1a1aa;
+    --accent: #ffffff;
+    --theme-color: #ffffff;
+    --theme-text-color: #000000;
+    --player-bg: rgba(0, 0, 0, 0.95);
+  }
+
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+@layer utilities {
+  .animate-spin-slow {
+    animation: spin 8s linear infinite;
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .desktop-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(150, 150, 150, 0.25) transparent;
+  }
+  .desktop-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .desktop-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .desktop-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(150, 150, 150, 0.25);
+    border-radius: 9999px;
+  }
+  .desktop-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(150, 150, 150, 0.45);
+  }
+
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+  }
+  .pt-safe {
+    padding-top: max(env(safe-area-inset-top, 0px), 16px);
+  }
+  .safe-area-pb {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
+  }
+  .safe-area-pt {
+    padding-top: max(env(safe-area-inset-top, 0px), 12px);
+  }
+
+  .h-screen-safe {
+    height: 100vh;
+    height: 100dvh;
+  }
+  .min-h-screen-safe {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .mask-image-linear {
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  }
+
+  .animate-character-3d {
+    animation: character3DIdle 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+    transform-origin: bottom center;
+  }
+
+  .animate-character-3d-fast {
+    animation: character3DIdle 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+    transform-origin: bottom center;
+  }
+}
+
+@keyframes character3DIdle {
+  0% {
+    transform: translate3d(0px, 0px, 0px) rotateY(0deg) rotateZ(0deg) scale(1);
+    filter: drop-shadow(-4px 5px 10px rgba(0, 0, 0, 0.35));
+  }
+  40% {
+    transform: translate3d(1px, -3.5px, 6px) rotateY(3deg) rotateZ(1deg) scale(1.02);
+    filter: drop-shadow(-6px 8px 14px rgba(0, 0, 0, 0.42));
+  }
+  75% {
+    transform: translate3d(-1px, -1.5px, 3px) rotateY(-2.5deg) rotateZ(-0.8deg) scale(0.995);
+    filter: drop-shadow(-3px 4px 8px rgba(0, 0, 0, 0.30));
+  }
+  100% {
+    transform: translate3d(0px, -4px, 8px) rotateY(1.5deg) rotateZ(0.5deg) scale(1.025);
+    filter: drop-shadow(-5px 7px 12px rgba(0, 0, 0, 0.40));
+  }
+}
+

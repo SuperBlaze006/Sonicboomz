@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- Pure Black Background -->
+  <rect width="512" height="512" fill="#060608" rx="32" />
+  
+  <!-- Outer Subtle Ambient Glow -->
+  <circle cx="256" cy="256" r="210" fill="#4d050c" opacity="0.3" filter="blur(20px)" />
+
+  <!-- Main Deep Crimson Red Circular Badge (Spotify Base) -->
+  <circle cx="256" cy="256" r="195" fill="#6c0812" />
+  <!-- Subtle Gradient Depth on Circle -->
+  <radialGradient id="redGrad" cx="45%" cy="40%" r="60%">
+    <stop offset="0%" stop-color="#8c0e18" />
+    <stop offset="70%" stop-color="#640710" />
+    <stop offset="100%" stop-color="#46040a" />
+  </radialGradient>
+  <circle cx="256" cy="256" r="195" fill="url(#redGrad)" />
+  <circle cx="256" cy="256" r="195" fill="none" stroke="#220205" stroke-width="4" opacity="0.6" />
+
+  <!-- Three Curved Black Sound Wave Bars (Spotify Waves) -->
+  <!-- Top Wave -->
+  <path d="M 132 208 C 210 182 302 186 380 220" fill="none" stroke="#08080a" stroke-width="26" stroke-linecap="round" />
+  <!-- Middle Wave -->
+  <path d="M 148 258 C 218 236 294 240 364 268" fill="none" stroke="#08080a" stroke-width="24" stroke-linecap="round" />
+  <!-- Bottom Wave -->
+  <path d="M 166 308 C 224 290 286 294 346 316" fill="none" stroke="#08080a" stroke-width="22" stroke-linecap="round" />
+
+  <!-- Thin White Hanging Web Strand -->
+  <line x1="256" y1="208" x2="256" y2="280" stroke="#f8fafc" stroke-width="2.5" stroke-linecap="round" opacity="0.9" />
+
+  <!-- Hanging Upside-Down Spider-Man (Miles Morales suit) -->
+  <g transform="translate(256, 310)">
+    <!-- Legs/Feet Clenched on Web (at the top, inverted) -->
+    <!-- Clenched hands/feet holding web at y = -30 -->
+    <ellipse cx="0" cy="-28" rx="8" ry="6" fill="#121217" />
+    <path d="M -7 -28 Q 0 -34 7 -28 Q 4 -22 -7 -28 Z" fill="#b91c1c" />
+
+    <!-- Inverted Calves & Knees (Spread Out) -->
+    <!-- Left Leg -->
+    <path d="M -3 -25 C -18 -15 -28 6 -18 20 C -12 28 -6 18 -2 6 Z" fill="#141419" stroke="#0a0a0e" stroke-width="2" />
+    <!-- Right Leg -->
+    <path d="M 3 -25 C 18 -15 28 6 18 20 C 12 28 6 18 2 6 Z" fill="#141419" stroke="#0a0a0e" stroke-width="2" />
+
+    <!-- Red Ankle/Shin Web Accents -->
+    <path d="M -16 12 Q -22 18 -18 22 Q -12 18 -14 10 Z" fill="#dc2626" opacity="0.9" />
+    <path d="M 16 12 Q 22 18 18 22 Q 12 18 14 10 Z" fill="#dc2626" opacity="0.9" />
+
+    <!-- Inverted Torso (Narrow at waist, broadening towards shoulders) -->
+    <!-- Waist (Top) to Chest/Shoulders (Lower) -->
+    <path d="M -9 8 C -14 18 -18 36 -16 48 C -12 56 12 56 16 48 C 18 36 14 18 9 8 Z" fill="#121216" stroke="#000000" stroke-width="1.5" />
+
+    <!-- Inverted Red Spider Chest Emblem -->
+    <!-- Center Body -->
+    <ellipse cx="0" cy="38" rx="3.5" ry="5.5" fill="#ef4444" />
+    <!-- Spider Legs pointing outwards and up/down -->
+    <path d="M -2 36 Q -10 30 -12 22 M -2 38 Q -12 36 -15 30 M -2 40 Q -12 44 -14 50 M -2 42 Q -9 48 -10 54" stroke="#ef4444" stroke-width="1.8" fill="none" stroke-linecap="round" />
+    <path d="M 2 36 Q 10 30 12 22 M 2 38 Q 12 36 15 30 M 2 40 Q 12 44 14 50 M 2 42 Q 9 48 10 54" stroke="#ef4444" stroke-width="1.8" fill="none" stroke-linecap="round" />
+
+    <!-- Inverted Arms Hanging / Clutched (Upper arms and forearms) -->
+    <!-- Left Arm -->
+    <path d="M -16 46 C -28 34 -32 14 -22 0 C -18 6 -12 16 -12 26 Z" fill="#101014" stroke="#08080a" stroke-width="1.5" />
+    <path d="M -22 4 Q -26 12 -20 16 Z" fill="#dc2626" opacity="0.85" />
+    <!-- Right Arm -->
+    <path d="M 16 46 C 28 34 32 14 22 0 C 18 6 12 16 12 26 Z" fill="#101014" stroke="#08080a" stroke-width="1.5" />
+    <path d="M 22 4 Q 26 12 20 16 Z" fill="#dc2626" opacity="0.85" />
+
+    <!-- Inverted Head & Mask (Positioned at bottom) -->
+    <!-- Head Oval -->
+    <ellipse cx="0" cy="66" rx="14.5" ry="17" fill="#131318" stroke="#0a0a0d" stroke-width="2" />
+    
+    <!-- Mask subtle red contour highlights -->
+    <path d="M -9 54 Q 0 51 9 54" stroke="#dc2626" stroke-width="1.2" fill="none" opacity="0.7" />
+    <path d="M -12 66 Q 0 62 12 66" stroke="#dc2626" stroke-width="1.2" fill="none" opacity="0.6" />
+
+    <!-- Iconic Glowing White Spider-Man Eyes (Inverted / Slanted) -->
+    <!-- Left Eye Mask Outer Black Rim -->
+    <path d="M -11 63 C -10 58 -5 57 -3 64 C -4 69 -9 71 -11 63 Z" fill="#000000" />
+    <!-- Left Eye White Glow -->
+    <path d="M -10 63 C -9 59 -6 58 -4 64 C -5 68 -8 70 -10 63 Z" fill="#ffffff" filter="drop-shadow(0 0 2px #ffffff)" />
+
+    <!-- Right Eye Mask Outer Black Rim -->
+    <path d="M 11 63 C 10 58 5 57 3 64 C 4 69 9 71 11 63 Z" fill="#000000" />
+    <!-- Right Eye White Glow -->
+    <path d="M 10 63 C 9 59 6 58 4 64 C 5 68 8 70 10 63 Z" fill="#ffffff" filter="drop-shadow(0 0 2px #ffffff)" />
+  </g>
+</svg>

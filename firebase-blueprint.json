@@ -1,0 +1,46 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user profile, credentials info, and account details",
+      "type": "object",
+      "properties": {
+        "username": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "hasManualPassword": { "type": "boolean" },
+        "manualPasswordRef": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email"]
+    },
+    "UserMusicData": {
+      "title": "User Music Data",
+      "description": "User's synced favorites, followed artists, history, and preferences across devices",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "favorites": { "type": "array" },
+        "followedArtists": { "type": "array" },
+        "recentSearches": { "type": "array" },
+        "audioQuality": { "type": "string" },
+        "themeColor": { "type": "string" },
+        "darkMode": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document"
+    },
+    "/users/{userId}/musicData/{dataId}": {
+      "schema": "UserMusicData",
+      "description": "User cross-device data store for favorites, followed artists, settings and history"
+    }
+  }
+}
