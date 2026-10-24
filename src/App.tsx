@@ -2238,7 +2238,10 @@ export default function App() {
       <OfflineIndicator />
 
       {/* App Launch Splash & Loading Screen */}
-      <AppLaunchLoadingScreen onOpenInstall={() => setIsInstallModalOpen(true)} />
+      <AppLaunchLoadingScreen 
+        onFinish={() => setIsLoadingFeed(false)}
+        onOpenInstall={() => setIsInstallModalOpen(true)} 
+      />
 
       {/* Dedicated Animated Install App Modal / Loading Page */}
       <InstallAppModal

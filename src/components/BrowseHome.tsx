@@ -607,7 +607,7 @@ export function BrowseHome({
           {/* Track List Section */}
           <div className="px-6 flex flex-col gap-1">
             {activeFeedTab === 'Trending Now' || activeFeedTab === 'Popular' || selectedCategory ? (
-              isLoadingFeed ? (
+              isLoadingFeed && feedTracks.length === 0 ? (
                 <div className="py-20 flex flex-col items-center justify-center gap-3">
                   <div className="w-8 h-8 border-2 border-[var(--theme-color)] border-t-transparent rounded-full animate-spin" />
                   <span className="text-xs text-gray-400 font-medium">Loading YouTube Trending Charts...</span>

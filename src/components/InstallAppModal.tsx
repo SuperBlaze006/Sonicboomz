@@ -25,12 +25,11 @@ interface InstallAppModalProps {
   themeColor?: string;
 }
 
-export const INSTALL_HERO_IMAGE = '/assets/aistudio/d7bbc2ef-7bab-494a-a140-4bfa6ae891a4_be235e33.jpeg';
+export const INSTALL_HERO_IMAGE = '/assets/aistudio/speaydi_2a8f00f0.jpeg';
 
 export function InstallAppModal({
   isOpen,
-  onClose,
-  themeColor = '#EF4444'
+  onClose
 }: InstallAppModalProps) {
   const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
   
@@ -117,20 +116,20 @@ export function InstallAppModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.94, y: 20 }}
           transition={{ type: 'spring', damping: 26, stiffness: 300 }}
-          className="relative w-full max-w-lg rounded-3xl bg-[#0c0d14]/95 border border-red-500/30 text-white shadow-[0_0_60px_rgba(239,68,68,0.22)] overflow-hidden my-auto z-10"
+          className="relative w-full max-w-lg rounded-3xl bg-[#090812]/95 border border-purple-500/30 text-white shadow-[0_0_60px_rgba(168,85,247,0.25)] overflow-hidden my-auto z-10"
         >
-          {/* Ambient Neon Background Glows */}
-          <div className="absolute -top-24 -left-24 w-60 h-60 rounded-full bg-red-600/25 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -right-24 w-60 h-60 rounded-full bg-rose-500/25 blur-3xl pointer-events-none" />
+          {/* Ambient Purple Background Glows */}
+          <div className="absolute -top-24 -left-24 w-60 h-60 rounded-full bg-purple-600/25 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -right-24 w-60 h-60 rounded-full bg-fuchsia-500/25 blur-3xl pointer-events-none" />
 
           {/* Top Header / Bar */}
           <div className="relative px-6 pt-5 pb-3 flex items-center justify-between border-b border-white/10 z-10">
             <div className="flex items-center gap-2">
               <span className="flex h-2.5 w-2.5 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500" />
               </span>
-              <span className="text-[11px] font-black uppercase tracking-widest text-red-400">
+              <span className="text-[11px] font-black uppercase tracking-widest text-purple-400">
                 PWA Standalone App
               </span>
             </div>
@@ -154,42 +153,42 @@ export function InstallAppModal({
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="flex flex-col items-center text-center"
               >
-                {/* Hero Artwork with Neon Web Rings & Audio Wave Equalizers */}
+                {/* Clean Hero Artwork with Purple Orbit Rings & Equalizers */}
                 <div className="relative my-2 flex items-center justify-center">
                   {/* Concentric Pulse Rings */}
                   <motion.div 
                     animate={{ scale: [1, 1.15, 1], opacity: [0.35, 0.7, 0.35] }}
                     transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
-                    className="absolute w-44 h-44 rounded-full border border-red-500/40 pointer-events-none"
+                    className="absolute w-44 h-44 rounded-full border border-purple-500/40 pointer-events-none"
                   />
                   <motion.div 
                     animate={{ scale: [1.1, 1.25, 1.1], opacity: [0.2, 0.5, 0.2] }}
                     transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-                    className="absolute w-52 h-52 rounded-full border border-rose-500/25 pointer-events-none"
+                    className="absolute w-52 h-52 rounded-full border border-fuchsia-500/25 pointer-events-none"
                   />
 
                   {/* Rotating Holographic Cyber Accent */}
                   <motion.div 
                     animate={{ rotate: 360 }}
                     transition={{ duration: 24, repeat: Infinity, ease: 'linear' }}
-                    className="absolute w-40 h-40 rounded-full border-2 border-dashed border-red-500/50 pointer-events-none"
+                    className="absolute w-40 h-40 rounded-full border-2 border-dashed border-purple-500/50 pointer-events-none"
                   />
 
-                  {/* Central Avatar Frame */}
+                  {/* Central Avatar Frame - Pure Artwork */}
                   <motion.div
                     whileHover={{ scale: 1.05 }}
                     animate={{ y: [0, -5, 0] }}
                     transition={{ duration: 3.6, repeat: Infinity, ease: 'easeInOut' }}
-                    className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full p-1.5 bg-gradient-to-tr from-red-600 via-rose-500 to-pink-500 shadow-[0_0_35px_rgba(239,68,68,0.55)] shrink-0 overflow-hidden"
+                    className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full p-1.5 bg-gradient-to-tr from-purple-600 via-fuchsia-500 to-indigo-500 shadow-[0_0_35px_rgba(168,85,247,0.55)] shrink-0 overflow-hidden"
                   >
                     <img 
                       src={INSTALL_HERO_IMAGE} 
-                      alt="Sonic Boomz App Hero"
+                      alt="Sonic Boomz Outer App Hero"
                       className="w-full h-full object-cover rounded-full"
                     />
                     
                     {/* Corner App Badge */}
-                    <div className="absolute bottom-1 right-2 p-1.5 rounded-full bg-black/90 border border-red-500/60 shadow-lg text-red-400">
+                    <div className="absolute bottom-1 right-2 p-1.5 rounded-full bg-black/90 border border-purple-500/60 shadow-lg text-purple-400">
                       <Music2 size={15} />
                     </div>
                   </motion.div>
@@ -202,7 +201,7 @@ export function InstallAppModal({
                       key={i}
                       animate={{ scaleY: [0.3, scale, 0.2] }}
                       transition={{ duration: 0.85 + (i % 3) * 0.2, repeat: Infinity, ease: 'easeInOut' }}
-                      className="w-1 bg-gradient-to-t from-red-600 to-rose-400 rounded-full origin-bottom"
+                      className="w-1 bg-gradient-to-t from-purple-600 to-fuchsia-400 rounded-full origin-bottom"
                       style={{ height: '22px' }}
                     />
                   ))}
@@ -213,13 +212,13 @@ export function InstallAppModal({
                   Sonic Boomz App
                 </h2>
                 <p className="text-xs sm:text-sm text-gray-300 mt-1 max-w-sm font-medium leading-relaxed">
-                  Install the official standalone app on your device for zero buffering, seamless background audio & offline downloads.
+                  Install the official standalone app on your phone for zero buffering, seamless background audio & offline downloads.
                 </p>
 
                 {/* Feature Highlights Grid */}
                 <div className="w-full grid grid-cols-2 gap-2.5 mt-5 text-left">
                   <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5 hover:bg-white/[0.08] transition-colors">
-                    <div className="p-2 rounded-xl bg-red-600/20 text-red-400 shrink-0">
+                    <div className="p-2 rounded-xl bg-purple-600/20 text-purple-400 shrink-0">
                       <WifiOff size={16} />
                     </div>
                     <div>
@@ -229,7 +228,7 @@ export function InstallAppModal({
                   </div>
 
                   <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5 hover:bg-white/[0.08] transition-colors">
-                    <div className="p-2 rounded-xl bg-rose-600/20 text-rose-400 shrink-0">
+                    <div className="p-2 rounded-xl bg-fuchsia-600/20 text-fuchsia-400 shrink-0">
                       <Headphones size={16} />
                     </div>
                     <div>
@@ -239,7 +238,7 @@ export function InstallAppModal({
                   </div>
 
                   <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5 hover:bg-white/[0.08] transition-colors">
-                    <div className="p-2 rounded-xl bg-amber-600/20 text-amber-400 shrink-0">
+                    <div className="p-2 rounded-xl bg-indigo-600/20 text-indigo-400 shrink-0">
                       <Zap size={16} />
                     </div>
                     <div>
@@ -249,7 +248,7 @@ export function InstallAppModal({
                   </div>
 
                   <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5 hover:bg-white/[0.08] transition-colors">
-                    <div className="p-2 rounded-xl bg-emerald-600/20 text-emerald-400 shrink-0">
+                    <div className="p-2 rounded-xl bg-purple-600/20 text-purple-300 shrink-0">
                       <Flame size={16} />
                     </div>
                     <div>
@@ -264,7 +263,7 @@ export function InstallAppModal({
                   <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={handleStartInstall}
-                    className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-500 hover:to-rose-500 text-white font-extrabold text-sm shadow-[0_0_25px_rgba(239,68,68,0.45)] flex items-center justify-center gap-2.5 transition-all group cursor-pointer"
+                    className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-sm shadow-[0_0_25px_rgba(168,85,247,0.45)] flex items-center justify-center gap-2.5 transition-all group cursor-pointer"
                   >
                     <Download size={18} className="group-hover:translate-y-0.5 transition-transform" />
                     <span>Install Sonic Boomz</span>
@@ -275,7 +274,7 @@ export function InstallAppModal({
                   {isIOS && (
                     <button
                       onClick={() => setActiveTab(activeTab === 'guide' ? 'app' : 'guide')}
-                      className="text-xs text-rose-400 hover:text-rose-300 underline underline-offset-4 font-semibold transition-colors"
+                      className="text-xs text-purple-300 hover:text-purple-200 underline underline-offset-4 font-semibold transition-colors"
                     >
                       {activeTab === 'guide' ? 'Hide iPhone Instructions' : 'How to install on iPhone (Safari Guide)'}
                     </button>
@@ -291,19 +290,19 @@ export function InstallAppModal({
                     className="w-full mt-4 p-4 rounded-2xl bg-black/50 border border-white/10 text-left text-xs space-y-2.5"
                   >
                     <div className="flex items-center gap-2 text-white font-bold">
-                      <Smartphone size={16} className="text-rose-400" />
+                      <Smartphone size={16} className="text-purple-400" />
                       <span>Quick 3-Step iPhone Setup:</span>
                     </div>
                     <div className="flex items-start gap-2.5 text-gray-300">
-                      <span className="w-5 h-5 rounded-full bg-red-600/30 text-red-400 font-bold flex items-center justify-center shrink-0 text-[11px]">1</span>
-                      <span>Tap the <strong>Share</strong> button <Share2 size={13} className="inline text-rose-400 mx-0.5" /> in Safari's bottom toolbar.</span>
+                      <span className="w-5 h-5 rounded-full bg-purple-600/30 text-purple-400 font-bold flex items-center justify-center shrink-0 text-[11px]">1</span>
+                      <span>Tap the <strong>Share</strong> button <Share2 size={13} className="inline text-purple-400 mx-0.5" /> in Safari's bottom toolbar.</span>
                     </div>
                     <div className="flex items-start gap-2.5 text-gray-300">
-                      <span className="w-5 h-5 rounded-full bg-red-600/30 text-red-400 font-bold flex items-center justify-center shrink-0 text-[11px]">2</span>
-                      <span>Scroll down and select <strong>Add to Home Screen</strong> <PlusSquare size={13} className="inline text-rose-400 mx-0.5" />.</span>
+                      <span className="w-5 h-5 rounded-full bg-purple-600/30 text-purple-400 font-bold flex items-center justify-center shrink-0 text-[11px]">2</span>
+                      <span>Scroll down and select <strong>Add to Home Screen</strong> <PlusSquare size={13} className="inline text-purple-400 mx-0.5" />.</span>
                     </div>
                     <div className="flex items-start gap-2.5 text-gray-300">
-                      <span className="w-5 h-5 rounded-full bg-red-600/30 text-red-400 font-bold flex items-center justify-center shrink-0 text-[11px]">3</span>
+                      <span className="w-5 h-5 rounded-full bg-purple-600/30 text-purple-400 font-bold flex items-center justify-center shrink-0 text-[11px]">3</span>
                       <span>Tap <strong>Add</strong> in the top-right corner to launch Sonic Boomz natively!</span>
                     </div>
                   </motion.div>
@@ -320,17 +319,17 @@ export function InstallAppModal({
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="flex flex-col items-center text-center py-6"
               >
-                {/* Pulsing Avatar with Spider-Web Energy Glow */}
+                {/* Pulsing Avatar */}
                 <div className="relative my-4 flex items-center justify-center">
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-                    className="absolute w-44 h-44 rounded-full border-2 border-transparent border-t-red-500 border-r-rose-400 pointer-events-none"
+                    className="absolute w-44 h-44 rounded-full border-2 border-transparent border-t-purple-500 border-r-fuchsia-400 pointer-events-none"
                   />
                   <motion.div
                     animate={{ scale: [1, 1.12, 1] }}
                     transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
-                    className="w-32 h-32 rounded-full p-1.5 bg-gradient-to-tr from-red-600 via-rose-500 to-pink-500 shadow-[0_0_45px_rgba(239,68,68,0.7)] shrink-0 overflow-hidden"
+                    className="w-32 h-32 rounded-full p-1.5 bg-gradient-to-tr from-purple-600 via-fuchsia-500 to-indigo-500 shadow-[0_0_45px_rgba(168,85,247,0.7)] shrink-0 overflow-hidden"
                   >
                     <img 
                       src={INSTALL_HERO_IMAGE} 
@@ -343,7 +342,7 @@ export function InstallAppModal({
                 <h3 className="text-xl sm:text-2xl font-black text-white mt-2">
                   Installing Sonic Boomz
                 </h3>
-                <p className="text-xs text-red-400 font-semibold mt-1">
+                <p className="text-xs text-purple-400 font-semibold mt-1">
                   Preparing Standalone Audio Engine & Offline Cache
                 </p>
 
@@ -355,7 +354,7 @@ export function InstallAppModal({
                   </div>
                   <div className="w-full h-2.5 rounded-full bg-white/10 overflow-hidden p-0.5 border border-white/10">
                     <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-red-600 via-rose-500 to-amber-400 shadow-[0_0_12px_rgba(239,68,68,0.8)]"
+                      className="h-full rounded-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-indigo-400 shadow-[0_0_12px_rgba(168,85,247,0.8)]"
                       style={{ width: `${installProgress}%` }}
                       transition={{ ease: 'easeOut' }}
                     />
@@ -387,9 +386,9 @@ export function InstallAppModal({
                   <motion.div
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
-                    className="absolute w-36 h-36 rounded-full bg-red-600/20 blur-xl pointer-events-none"
+                    className="absolute w-36 h-36 rounded-full bg-purple-600/20 blur-xl pointer-events-none"
                   />
-                  <div className="relative w-28 h-28 rounded-full p-1 bg-gradient-to-tr from-emerald-500 to-red-500 shadow-[0_0_35px_rgba(16,185,129,0.5)] shrink-0 overflow-hidden">
+                  <div className="relative w-28 h-28 rounded-full p-1 bg-gradient-to-tr from-emerald-500 to-purple-500 shadow-[0_0_35px_rgba(16,185,129,0.5)] shrink-0 overflow-hidden">
                     <img 
                       src={INSTALL_HERO_IMAGE} 
                       alt="Sonic Boomz Ready"
@@ -418,7 +417,7 @@ export function InstallAppModal({
                 <div className="w-full mt-6 space-y-2">
                   <button
                     onClick={onClose}
-                    className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-sm shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
                     <span>Start Listening Now</span>
                     <ArrowRight size={16} />

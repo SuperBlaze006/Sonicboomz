@@ -140,19 +140,19 @@ export function Sidebar({
                   onOpenInstallModal();
                   onClose();
                 }}
-                className="w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all font-bold text-sm bg-gradient-to-r from-red-600/10 to-rose-600/10 hover:from-red-600/20 hover:to-rose-600/20 text-red-600 dark:text-red-400 border border-red-500/20"
+                className="w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all font-bold text-sm bg-gradient-to-r from-purple-600/10 to-fuchsia-600/10 hover:from-purple-600/20 hover:to-fuchsia-600/20 text-purple-600 dark:text-purple-300 border border-purple-500/20"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full overflow-hidden border border-red-500/50 shrink-0">
+                  <div className="w-6 h-6 rounded-full overflow-hidden border border-purple-500/50 shrink-0">
                     <img 
-                      src="/assets/aistudio/d7bbc2ef-7bab-494a-a140-4bfa6ae891a4_be235e33.jpeg" 
-                      alt="Install" 
+                      src="/assets/aistudio/speaydi_2a8f00f0.jpeg" 
+                      alt="Install App" 
                       className="w-full h-full object-cover" 
                     />
                   </div>
                   <span>Install App</span>
                 </div>
-                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-red-600/20 border border-red-500/30">
+                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-purple-600/20 text-purple-300 border border-purple-500/30">
                   PWA
                 </span>
               </button>
