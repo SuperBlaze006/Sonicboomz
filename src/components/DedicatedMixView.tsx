@@ -103,7 +103,6 @@ export function DedicatedMixView({
 
   const [tracks, setTracks] = useState<Track[]>(() => [...initialPreset]);
   const [activeVibeId, setActiveVibeId] = useState<string>('all');
-  const [chartSearch, setChartSearch] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(() => initialPreset.length === 0);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
@@ -335,7 +334,7 @@ export function DedicatedMixView({
     return () => observer.disconnect();
   }, [isLoadingMore, isLoading, tracks.length, page, activeVibeId]);
 
-  // Filter displayed tracks by activeVibeId and chartSearch while preserving rich fallback
+  // Filter displayed tracks by activeVibeId while preserving rich fallback
   const displayedTracks = useMemo(() => {
     let list = tracks;
 
@@ -352,15 +351,8 @@ export function DedicatedMixView({
       }
     }
 
-    if (chartSearch.trim().length > 0) {
-      const q = chartSearch.toLowerCase().trim();
-      list = list.filter(
-        t => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q)
-      );
-    }
-
     return list;
-  }, [tracks, activeVibeId, chartSearch, matchedChart]);
+  }, [tracks, activeVibeId, matchedChart]);
 
   const handlePlayAll = () => {
     if (displayedTracks.length > 0) {
@@ -470,48 +462,27 @@ export function DedicatedMixView({
           </div>
         </div>
 
-        {/* Chart Vibe Sub-Filters & In-Chart Search Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-          {matchedChart?.vibeFilters && matchedChart.vibeFilters.length > 0 && (
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar">
-              {matchedChart.vibeFilters.map((vibe) => {
-                const active = activeVibeId === vibe.id;
-                return (
-                  <button
-                    key={vibe.id}
-                    onClick={() => setActiveVibeId(vibe.id)}
-                    className={`shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer active:scale-95 ${
-                      active
-                        ? 'bg-black text-white dark:bg-white dark:text-black shadow-md'
-                        : 'bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/10 border border-black/10 dark:border-white/10'
-                    }`}
-                  >
-                    {vibe.label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="relative w-full sm:w-64 shrink-0">
-            <input
-              type="text"
-              value={chartSearch}
-              onChange={(e) => setChartSearch(e.target.value)}
-              placeholder={`Search in ${matchedChart?.circleLabel || 'chart'}...`}
-              className="w-full bg-black/5 dark:bg-white/5 text-gray-900 dark:text-white border border-black/10 dark:border-white/10 rounded-2xl py-2 pl-9 pr-8 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-black/20 dark:focus:ring-white/20"
-            />
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            {chartSearch && (
-              <button
-                onClick={() => setChartSearch('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer"
-              >
-                <X size={14} />
-              </button>
-            )}
+        {/* Chart Vibe Sub-Filters */}
+        {matchedChart?.vibeFilters && matchedChart.vibeFilters.length > 0 && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar pt-1">
+            {matchedChart.vibeFilters.map((vibe) => {
+              const active = activeVibeId === vibe.id;
+              return (
+                <button
+                  key={vibe.id}
+                  onClick={() => setActiveVibeId(vibe.id)}
+                  className={`shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+                    active
+                      ? 'bg-black text-white dark:bg-white dark:text-black shadow-md'
+                      : 'bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/10 border border-black/10 dark:border-white/10'
+                  }`}
+                >
+                  {vibe.label}
+                </button>
+              );
+            })}
           </div>
-        </div>
+        )}
 
         {/* Tracklist Section */}
         <div className="space-y-3 pt-1">
@@ -541,7 +512,6 @@ export function DedicatedMixView({
               <button
                 onClick={() => {
                   setActiveVibeId('all');
-                  setChartSearch('');
                 }}
                 className="mt-3 px-4 py-2 rounded-full bg-black dark:bg-white text-white dark:text-black text-xs font-bold cursor-pointer"
               >
@@ -553,7 +523,7 @@ export function DedicatedMixView({
               {displayedTracks.map((track, idx) => {
                 const isThisPlaying = currentTrack?.id === track.id && isPlaying;
                 const isThisCurrent = currentTrack?.id === track.id;
-                const isTop3 = idx < 3 && !chartSearch && activeVibeId === 'all';
+                const isTop3 = idx < 3 && activeVibeId === 'all';
 
                 return (
                   <div
