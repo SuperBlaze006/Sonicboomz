@@ -13,7 +13,8 @@ import {
   Music,
   Share2,
   Calendar,
-  Check
+  Check,
+  RefreshCw
 } from 'lucide-react';
 
 interface DedicatedSectionViewProps {
@@ -338,6 +339,30 @@ export function DedicatedSectionView({
     }
   };
 
+  const handleRefresh = async () => {
+    setIsLoading(true);
+    SECTION_TRACKS_CACHE.delete(sectionCacheKey);
+    try {
+      const freshEndpoint = isAlbum && albumId
+        ? `/api/album-tracks?id=${encodeURIComponent(albumId)}&source=${albumId.startsWith('saavn') ? 'jiosaavn' : 'itunes'}&refresh=true`
+        : `/api/search?q=${encodeURIComponent(`${query} 2026 latest popular`)}&source=youtube&refresh=true`;
+      const res = await fetch(freshEndpoint);
+      if (res.ok) {
+        const data = await res.json();
+        const results = data.tracks || data.results || [];
+        if (results.length > 0) {
+          const valid = results.filter((t: any) => t && t.id && (!t.duration || (t.duration >= 45 && t.duration <= 540)));
+          if (valid.length > 0) {
+            SECTION_TRACKS_CACHE.set(sectionCacheKey, valid);
+            setTracks(valid);
+          }
+        }
+      }
+      if (showToast) showToast(`Refreshed ${cleanTitle}`);
+    } catch (_) {}
+    setIsLoading(false);
+  };
+
   const headerArtwork = coverUrl || tracks[0]?.coverUrl || '/app-logo.svg';
 
   return (
@@ -412,7 +437,7 @@ export function DedicatedSectionView({
                 {subtitle}
               </p>
 
-              {/* Play All & Shuffle Buttons */}
+              {/* Play All, Shuffle & Refresh Buttons in Line */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2">
                 <button
                   onClick={handlePlayAll}
@@ -430,6 +455,16 @@ export function DedicatedSectionView({
                 >
                   <Shuffle size={16} />
                   <span>Shuffle</span>
+                </button>
+
+                <button
+                  onClick={handleRefresh}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-all font-bold text-sm active:scale-95 cursor-pointer disabled:opacity-50"
+                  title="Refresh tracks"
+                >
+                  <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
+                  <span>Refresh</span>
                 </button>
               </div>
             </div>

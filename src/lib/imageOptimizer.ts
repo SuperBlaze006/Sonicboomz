@@ -5,7 +5,7 @@
  */
 import type React from 'react';
 
-export const DEFAULT_FALLBACK_COVER = '/app-logo.svg';
+export const DEFAULT_FALLBACK_COVER = '/app-logo.png';
 
 export function applyAppLogoFallback(
   e: React.SyntheticEvent<HTMLImageElement, Event>,

@@ -1,119 +1,111 @@
 import React, { useState } from 'react';
-import { Download, Share2, X, Smartphone } from 'lucide-react';
+import { Download, Sparkles, Smartphone } from 'lucide-react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
+import { InstallAppModal, INSTALL_HERO_IMAGE } from './InstallAppModal';
 
 interface PWAInstallButtonProps {
   className?: string;
-  variant?: 'header' | 'compact' | 'banner';
+  variant?: 'header' | 'compact' | 'banner' | 'pill';
+  onOpenModal?: () => void;
 }
 
 export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
   className = '',
-  variant = 'header'
+  variant = 'header',
+  onOpenModal
 }) => {
-  const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
-  const [showIOSGuide, setShowIOSGuide] = useState(false);
+  const { isInstalled } = usePWAInstall();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // If already running in standalone mode (installed as an app), do not show prompt
+  // If already installed as a standalone PWA, don't show the prompt
   if (isInstalled) {
     return null;
   }
 
-  // Chromium / Android / Desktop flow
-  if (isInstallable) {
-    if (variant === 'banner') {
-      return (
-        <div className={`p-4 rounded-2xl bg-gradient-to-r from-red-600 to-rose-700 text-white flex items-center justify-between shadow-lg ${className}`}>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
-              <Smartphone size={20} />
+  const handleOpen = () => {
+    if (onOpenModal) {
+      onOpenModal();
+    } else {
+      setIsModalOpen(true);
+    }
+  };
+
+  return (
+    <>
+      {variant === 'banner' ? (
+        <div 
+          onClick={handleOpen}
+          className={`relative overflow-hidden p-4 rounded-2xl bg-gradient-to-r from-neutral-900 via-neutral-900 to-red-950/60 border border-red-500/30 text-white flex items-center justify-between shadow-xl cursor-pointer hover:border-red-500/60 transition-all group ${className}`}
+        >
+          {/* Subtle glow */}
+          <div className="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-red-600/20 blur-xl pointer-events-none group-hover:bg-red-600/30 transition-all" />
+
+          <div className="flex items-center gap-3.5 z-10">
+            {/* Miles Morales circular hero thumbnail */}
+            <div className="relative w-11 h-11 rounded-full p-0.5 bg-gradient-to-tr from-red-600 to-rose-400 shadow-[0_0_15px_rgba(239,68,68,0.5)] shrink-0 overflow-hidden">
+              <img 
+                src={INSTALL_HERO_IMAGE} 
+                alt="Sonic Boomz" 
+                className="w-full h-full object-cover rounded-full" 
+              />
             </div>
             <div>
-              <h4 className="font-bold text-sm leading-tight">Install Sonic Boomz</h4>
-              <p className="text-xs text-white/80">Play offline & seamless background audio</p>
+              <div className="flex items-center gap-1.5">
+                <h4 className="font-extrabold text-sm leading-tight text-white">Install Sonic Boomz</h4>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-600/30 text-red-400 font-bold border border-red-500/40">App</span>
+              </div>
+              <p className="text-xs text-neutral-300">Offline playback, zero lag & background audio</p>
             </div>
           </div>
+
           <button
-            onClick={install}
-            className="px-4 py-2 rounded-xl bg-white text-red-600 font-bold text-xs shadow-md hover:bg-neutral-100 active:scale-95 transition-all"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpen();
+            }}
+            className="z-10 px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold text-xs shadow-lg active:scale-95 transition-all flex items-center gap-1.5"
           >
-            Install
+            <Download size={13} />
+            <span>Install</span>
           </button>
         </div>
-      );
-    }
-
-    return (
-      <button
-        type="button"
-        onClick={install}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold shadow-md transition-all ${className}`}
-        title="Install Sonic Boomz app"
-        aria-label="Install Sonic Boomz App"
-      >
-        <Download size={13} className="shrink-0" />
-        <span>Install App</span>
-      </button>
-    );
-  }
-
-  // iOS Safari flow (beforeinstallprompt is not supported by WebKit)
-  if (isIOS) {
-    return (
-      <>
+      ) : variant === 'compact' ? (
         <button
           type="button"
-          onClick={() => setShowIOSGuide(true)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-neutral-700/60 bg-neutral-800/80 hover:bg-neutral-800 text-white text-xs font-medium backdrop-blur-md shadow-sm transition-all ${className}`}
-          aria-label="Install on iPhone / iPad"
+          onClick={handleOpen}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-400 hover:text-red-300 text-xs font-semibold backdrop-blur-md active:scale-95 transition-all cursor-pointer ${className}`}
+          title="Install Sonic Boomz App"
+          aria-label="Install Sonic Boomz App"
         >
-          <Smartphone size={13} className="text-rose-400 shrink-0" />
+          <div className="w-4 h-4 rounded-full overflow-hidden shrink-0 border border-red-500/50">
+            <img src={INSTALL_HERO_IMAGE} alt="App" className="w-full h-full object-cover" />
+          </div>
           <span>Install App</span>
         </button>
-
-        {showIOSGuide && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="w-full max-w-sm rounded-2xl bg-neutral-900 border border-neutral-800 p-6 text-white shadow-2xl relative">
-              <button
-                onClick={() => setShowIOSGuide(false)}
-                className="absolute top-4 right-4 p-1 rounded-full text-neutral-400 hover:text-white transition-colors"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
-              <div className="w-12 h-12 rounded-2xl bg-red-600/20 text-red-500 flex items-center justify-center mb-4">
-                <Share2 size={24} />
-              </div>
-              <h3 className="text-lg font-bold text-white">Install Sonic Boomz</h3>
-              <p className="mt-2 text-xs text-neutral-300 leading-relaxed">
-                Enjoy background audio playback and offline music on your iPhone:
-              </p>
-              <div className="mt-3.5 space-y-2.5 text-xs text-neutral-300 bg-neutral-950/60 p-3.5 rounded-xl border border-neutral-800/80">
-                <div className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-red-600/30 text-red-400 font-bold flex items-center justify-center shrink-0 text-[10px]">1</span>
-                  <span>Tap the <strong>Share</strong> icon in the Safari bottom bar.</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-red-600/30 text-red-400 font-bold flex items-center justify-center shrink-0 text-[10px]">2</span>
-                  <span>Scroll down and select <strong>Add to Home Screen</strong>.</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-red-600/30 text-red-400 font-bold flex items-center justify-center shrink-0 text-[10px]">3</span>
-                  <span>Tap <strong>Add</strong> at top right to complete install.</span>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowIOSGuide(false)}
-                className="mt-5 w-full rounded-xl bg-red-600 py-2.5 text-xs font-bold text-white hover:bg-red-700 transition"
-              >
-                Got It
-              </button>
-            </div>
+      ) : (
+        <button
+          type="button"
+          onClick={handleOpen}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 active:scale-95 text-white text-xs font-bold shadow-[0_0_15px_rgba(239,68,68,0.35)] transition-all cursor-pointer border border-red-400/30 ${className}`}
+          title="Install Sonic Boomz app"
+          aria-label="Install Sonic Boomz App"
+        >
+          <div className="w-4 h-4 rounded-full overflow-hidden shrink-0 border border-white/60">
+            <img src={INSTALL_HERO_IMAGE} alt="App" className="w-full h-full object-cover" />
           </div>
-        )}
-      </>
-    );
-  }
+          <span className="tracking-wide">Install App</span>
+          <Sparkles size={12} className="text-yellow-200 animate-pulse" />
+        </button>
+      )}
 
-  return null;
+      {/* Render the install modal if opened via local state */}
+      {!onOpenModal && (
+        <InstallAppModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
+    </>
+  );
 };

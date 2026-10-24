@@ -12,6 +12,7 @@ interface SidebarProps {
   themeColor: string;
   user?: User | null;
   onOpenSettings?: () => void;
+  onOpenInstallModal?: () => void;
 }
 
 export function Sidebar({
@@ -22,6 +23,7 @@ export function Sidebar({
   themeColor,
   user,
   onOpenSettings,
+  onOpenInstallModal,
 }: SidebarProps) {
   const navItems = [
     { id: 'home' as ActiveNavTab, label: 'Home', icon: Home },
@@ -130,8 +132,32 @@ export function Sidebar({
             })}
           </div>
 
-          {/* Settings Shortcut */}
-          <div className="pt-2 border-t border-black/5 dark:border-white/10">
+          {/* Install App & Settings Shortcut */}
+          <div className="pt-2 border-t border-black/5 dark:border-white/10 space-y-1.5">
+            {onOpenInstallModal && (
+              <button
+                onClick={() => {
+                  onOpenInstallModal();
+                  onClose();
+                }}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all font-bold text-sm bg-gradient-to-r from-red-600/10 to-rose-600/10 hover:from-red-600/20 hover:to-rose-600/20 text-red-600 dark:text-red-400 border border-red-500/20"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full overflow-hidden border border-red-500/50 shrink-0">
+                    <img 
+                      src="/assets/aistudio/d7bbc2ef-7bab-494a-a140-4bfa6ae891a4_be235e33.jpeg" 
+                      alt="Install" 
+                      className="w-full h-full object-cover" 
+                    />
+                  </div>
+                  <span>Install App</span>
+                </div>
+                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-red-600/20 border border-red-500/30">
+                  PWA
+                </span>
+              </button>
+            )}
+
             <button
               onClick={() => {
                 if (onOpenSettings) onOpenSettings();

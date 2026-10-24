@@ -26,10 +26,11 @@ export async function onRequestGet(context: { request: Request; env: CloudflareE
   const category = (url.searchParams.get('category') || '').trim();
   const pageToken = url.searchParams.get('pageToken') || '';
   const page = parseInt(pageToken || '1', 10) || 1;
+  const isRefresh = url.searchParams.get('refresh') === 'true';
   const requestedLimit = parseInt(url.searchParams.get('limit') || (!category ? '150' : '40'), 10);
   const limit = Math.min(Math.max(requestedLimit, 10), 150);
 
-  // Category-specific multi-query pools for unlimited, non-repeating pagination
+  // Category-specific multi-query pools for all 11 Trending Charts
   const categoryQueryPools: Record<string, string[]> = {
     'bollywood': [
       'latest bollywood hits arijit singh 2026',
@@ -41,56 +42,69 @@ export async function onRequestGet(context: { request: Request; env: CloudflareE
       'latest bollywood movie original soundtracks',
       'trending hindi viral songs 2026'
     ],
-    'punjabi': [
-      'punjabi hits karan aujla diljit dosanjh sidhu moose wala 2026',
-      'top punjabi chartbusters shubh ap dhillon',
-      'punjabi pop wave gurinder sehmbi jordan sandhu',
-      'latest punjabi bangers haryanvi punjabi hits',
-      'punjabi lofi chill acoustic songs',
-      'punjabi bhangra party blast 2026'
+    'hollywood': [
+      'billboard hot 100 hollywood english trending hit songs 2026',
+      'top hollywood chartbusters the weeknd bruno mars sabrina carpenter',
+      'popular hollywood english pop songs taylor swift billie eilish dua lipa',
+      'global english chartbusters coldplay post malone ed sheeran',
+      'billboard top 40 radio hits 2026 official video',
+      'viral english songs tiktok billboard hits 2026'
     ],
     'cokestudio': [
       'coke studio pakistan kaifi khalil ali sethi 2025',
       'coke studio season 14 15 pasoori tu jhoom jhol',
       'pakistani sufi magic ghazal pop faheem abdullah',
       'coke studio viral chartbusters afreen kana yaari',
-      'pakistani indie acoustic pop 2026'
+      'pakistani indie acoustic pop 2026',
+      'coke studio unplugged live sessions atif aslam'
     ],
-    'slowed': [
-      'lofi hindi slowed reverb study chill late night',
-      'bollywood lofi beats aesthetic midnight songs',
-      'slowed reverb romantic hindi lofi 2026',
-      'sad hindi lofi acoustic night vibes',
-      'chill lofi pop hits Indian lofi'
+    'hustle': [
+      'mtv hustle viral hit songs king mc square paradox bella',
+      'mtv hustle season 3 season 4 top songs uday pandhi mrunal shankar',
+      'hustle rap reality show young indian artists viral songs',
+      'indian reality show breakout youngsters original hit songs hustle cypher',
+      'mtv hustle best performances rap bangers official audio'
     ],
     'south': [
       'tamil telugu pan india hits anirudh 2026',
       'south indian chartbusters devara hukum chuttamalle',
       'sushin shyam illuminati telugu tamil top hits',
       'devi sri prasad thaman s gv prakash hits',
-      'kannada malayalam telugu tamil superhits 2026'
-    ],
-    'pop': [
-      'global pop hits the weeknd billie eilish bruno mars sabrina carpenter',
-      'top 40 billboard pop chartbusters 2026',
-      'sabrina carpenter espresso taste taylor swift',
-      'dua lipa tate mcrae charlie xcx pop hits',
-      'viral global english pop 2026'
+      'kannada malayalam telugu tamil superhits 2026',
+      'anirudh ravichander latest hits devara leo jailer spark'
     ],
     'hiphop': [
       'desi hip hop divine seedhe maut krsna raftaar',
       'top indian rap bangers badshah ikka king',
       'underground desi rap hip hop 2026',
-      'trap rap hindi punjabi hip hop hits'
+      'trap rap hindi punjabi hip hop hits',
+      'young desi rappers viral drill rap 2026'
+    ],
+    'indianpop': [
+      'indian pop viral hit songs anuv jain ap dhillon diljit dosanjh',
+      'desi indie pop hits prateek kuhad zaeden aditya rikhari mitraz',
+      'indian pop chartbusters king ritviz armaan malik akshath',
+      'hindi & punjabi indie pop acoustic hits talwiinder',
+      'anuv jain husn baarishein jo tum mere ho official audio'
+    ],
+    'lofi': [
+      'hindi lofi chill relaxing songs arijit singh anuv jain',
+      'soothing lofi chill songs late night relaxation aesthetic hindi indie',
+      'chill relaxing lofi version popular songs peaceful evening study vibes',
+      'bollywood lofi chill mix peaceful sleep relaxation unplugged beats'
+    ],
+    'slowed': [
+      'trending hindi songs slowed and reverb night vibe arijit singh',
+      'popular viral songs slowed and reverb late night evening morning chill audio',
+      'coke studio & indie trending songs slowed and reverb jhol pasoori',
+      'top punjabi & english trending songs slowed and reverb night drive vibes',
+      'slowed reverb aesthetic hindi songs 2026'
     ],
     'rock': [
-      'rock alternative hits official audio',
-      'indian rock indie bands local train sanam',
-      'classic rock grunge alternative bangers'
-    ],
-    'electronic': [
-      'edm dance electronic festival hits 2026',
-      'electronica house dance party anthems'
+      'indian classical fusion sufi rock songs ar rahman nusrat fateh ali khan',
+      'hindi rock classics the local train agnee euphoria junoon strings lucky ali',
+      'rock classics anthems linkin park queen imagine dragons coldplay',
+      'indian semi classical sufi rock masterpieces shankar mahadevan javed ali'
     ]
   };
 
@@ -120,32 +134,52 @@ export async function onRequestGet(context: { request: Request; env: CloudflareE
     'dua lipa levitating houdini training season',
     'prateek kuhad cold mess kasoor co2',
     'chappell roan good luck babe red wine supernovo',
-    'charlie xcx360 apple von dutch brat',
+    'charlie xcx 360 apple von dutch brat',
     'rose apt bruno mars die with a smile',
     'post malone i had some help morgan wallen',
     'tate mcrae greedy exes sports car',
     'gracie abrams us risk i love you im sorry'
   ];
 
-  const catLower = category.toLowerCase();
-  let queryPool = globalTrendingPool;
+  const catRaw = (category || '').trim();
+  const catClean = catRaw.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const isAllTrending = !catRaw || catClean === 'alltrending' || catClean === 'all';
 
-  for (const [k, pool] of Object.entries(categoryQueryPools)) {
-    if (catLower.includes(k)) {
-      queryPool = pool;
-      break;
-    }
+  let queryPool = globalTrendingPool;
+  if (isAllTrending) {
+    queryPool = globalTrendingPool;
+  } else if (catClean.includes('bollywood') || catClean.includes('hindi')) {
+    queryPool = categoryQueryPools.bollywood;
+  } else if (catClean.includes('hollywood') || catClean.includes('english')) {
+    queryPool = categoryQueryPools.hollywood;
+  } else if (catClean.includes('coke') || catClean.includes('pakistan')) {
+    queryPool = categoryQueryPools.cokestudio;
+  } else if (catClean.includes('hustle') || catClean.includes('reality')) {
+    queryPool = categoryQueryPools.hustle;
+  } else if (catClean.includes('south') || catClean.includes('tamil') || catClean.includes('telugu') || catClean.includes('malayalam') || catClean.includes('kannada')) {
+    queryPool = categoryQueryPools.south;
+  } else if (catClean.includes('hiphop') || catClean.includes('rap')) {
+    queryPool = categoryQueryPools.hiphop;
+  } else if (catClean.includes('indianpop') || (catClean.includes('pop') && !catClean.includes('hollywood'))) {
+    queryPool = categoryQueryPools.indianpop;
+  } else if (catClean.includes('lofi') || catClean.includes('chill')) {
+    queryPool = categoryQueryPools.lofi;
+  } else if (catClean.includes('slowed') || catClean.includes('reverb')) {
+    queryPool = categoryQueryPools.slowed;
+  } else if (catClean.includes('classical') || catClean.includes('rock')) {
+    queryPool = categoryQueryPools.rock;
   }
 
-  const qIdx1 = (page - 1) % queryPool.length;
-  const qIdx2 = (page * 2 - 1) % queryPool.length;
+  const refreshOffset = isRefresh ? Math.floor(Math.random() * queryPool.length) : 0;
+  const qIdx1 = (page - 1 + refreshOffset) % queryPool.length;
+  const qIdx2 = (page * 2 - 1 + refreshOffset) % queryPool.length;
   const saavnPage = Math.floor((page - 1) / queryPool.length) + 1;
   const query1 = queryPool[qIdx1];
   const query2 = queryPool[qIdx2];
 
-  // 1. Check D1 database if bound (only for page 1)
+  // 1. Check D1 database if bound (only for page 1 when NOT in refresh mode)
   let d1Tracks: Track[] = [];
-  if (page === 1 && env && env.DB) {
+  if (page === 1 && !isRefresh && env && env.DB) {
     try {
       await ensureD1Tables(env);
       const stmt = env.DB.prepare(`
@@ -201,11 +235,26 @@ export async function onRequestGet(context: { request: Request; env: CloudflareE
     }
   }
 
-  const finalTracks = combined.slice(0, Math.max(limit, 30));
+  let outputTracks = combined;
+  if (isRefresh && outputTracks.length > 6 && page === 1) {
+    const top = outputTracks.slice(0, 16);
+    const rest = outputTracks.slice(16);
+    for (let i = top.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [top[i], top[j]] = [top[j], top[i]];
+    }
+    outputTracks = [...top, ...rest];
+  }
 
-  return jsonResponse({
-    results: finalTracks,
-    nextPageToken: String(page + 1),
-    source: 'live_edge_catalog'
-  });
+  const finalTracks = outputTracks.slice(0, Math.max(limit, 30));
+
+  return jsonResponse(
+    {
+      results: finalTracks,
+      nextPageToken: String(page + 1),
+      source: 'live_edge_catalog'
+    },
+    200,
+    isRefresh ? { 'Cache-Control': 'no-cache, no-store, must-revalidate' } : {}
+  );
 }

@@ -30,10 +30,13 @@ export function AppLogo({
         style={{ width: pixelSize, height: pixelSize }}
       >
         <img
-          src="/app-logo.svg"
+          src="/app-logo.png"
           alt="Sonic Boomz"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-full"
           loading="eager"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = '/assets/aistudio/d7bbc2ef-7bab-494a-a140-4bfa6ae891a4_be235e33.jpeg';
+          }}
         />
       </div>
 

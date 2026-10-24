@@ -416,7 +416,8 @@ app.get('/api/feed', async (req, res) => {
 
     const catLower = (category || '').toLowerCase();
     const isSlowedSection = catLower.includes('slowed') || catLower.includes('reverb');
-    const isSouthSection = catLower.includes('south') || catLower.includes('pan-india');
+    const isSouthSection = catLower.includes('south') || catLower.includes('pan-india') || catLower.includes('tamil') || catLower.includes('telugu') || catLower.includes('malayalam') || catLower.includes('kannada');
+    const isAllTrending = !category || catLower === 'all trending' || catLower === 'all-trending' || catLower === 'all';
 
     // Helper to clean and validate individual music tracks (excludes jukeboxes, shorts, and 8D/80s in Slowed)
     const filterAndFormatYtsVideos = (videos: any[]): any[] => {
@@ -494,12 +495,12 @@ app.get('/api/feed', async (req, res) => {
       }
     };
 
-    // Build section-specific parallel search queries
+    // Build section-specific parallel search queries for all 11 Charts
     let ytsQueries: string[] = [];
     let saavnQueries: string[] = [];
 
-    if (!category) {
-      // ALL TRENDING: Top 150 Real-Time Trending Songs across Bollywood, Hollywood, Coke Studio, Punjabi, South & Indie
+    if (isAllTrending) {
+      // 1. ALL TRENDING (Top 150 Real-Time Trending Songs across all categories)
       ytsQueries = [
         'top trending songs 2026 hindi bollywood punjabi viral hits official music video',
         'billboard hot 100 hollywood english trending hit songs 2026 bruno mars the weeknd sabrina carpenter',
@@ -525,99 +526,167 @@ app.get('/api/feed', async (req, res) => {
         'latest bollywood hit songs 2025 2026 official video arijit singh shreya ghoshal vishal mishra',
         'top hindi chartbusters stree 2 bhool bhulaiyaa 3 animal chhaava sachin jigar pritam',
         'bollywood romantic & party hit songs atif aslam kk sonu nigam jubin nautiyal official',
-        'superhit hindi movie songs mohit chauhan راحت فتح علی خان जावेद अली अरिजीत सिंह'
+        'superhit hindi movie songs mohit chauhan rahat fateh ali khan javed ali official audio',
+        'new romantic hindi songs 2026 arijit singh vishal mishra tulsi kumar',
+        'bollywood viral dance party songs badshah honey singh kanika kapoor'
       ];
-      saavnQueries = ['bollywood top hits arijit singh sachin jigar'];
-    } else if (catLower.includes('hollywood') || catLower.includes('english') || catLower.includes('global') || catLower.includes('western')) {
-      // 3. HOLLYWOOD (Renamed from English & placed 3rd)
+      saavnQueries = [
+        'bollywood top hits arijit singh sachin jigar',
+        'latest hindi hits 2026'
+      ];
+    } else if (catLower.includes('hollywood') || catLower.includes('english') || catLower.includes('western')) {
+      // 3. HOLLYWOOD
       ytsQueries = [
         'hollywood top hit songs billboard hot 100 the weeknd bruno mars lady gaga billie eilish official video',
         'popular hollywood english pop songs sabrina carpenter taylor swift dua lipa post malone ed sheeran',
         'global english chartbusters justin bieber coldplay ariana grande rihanna sia shawn mendes official',
-        'international pop & r&b hits charlie puth imagine dragons maroon 5 adele selena gomez'
+        'international pop & r&b hits charlie puth imagine dragons maroon 5 adele selena gomez',
+        'billboard top 40 radio hits 2026 official video',
+        'viral english songs tiktok billboard hits 2026'
       ];
-      saavnQueries = ['english pop hits the weeknd bruno mars taylor swift'];
-    } else if (catLower.includes('pakistan') || catLower.includes('coke studio')) {
+      saavnQueries = [
+        'english pop hits the weeknd bruno mars taylor swift',
+        'billboard hot 100 hits 2026'
+      ];
+    } else if (catLower.includes('pakistan') || catLower.includes('coke') || catLower.includes('coke studio')) {
       // 4. COKE STUDIO
       ytsQueries = [
         'coke studio pakistan viral hits pasoori jhol tu jhoom kana yaari blockbuster official video',
         'coke studio best songs atif aslam ali sethi kaifi khalil abida parveen rahat fateh ali khan',
         'coke studio bharat & pakistan khalasi chaudhary afreen afreen tajdar e haram hasan raheem',
-        'coke studio unplugged live sessions strings momina mustehsan faris shafi zain zohaib'
+        'coke studio unplugged live sessions strings momina mustehsan faris shafi zain zohaib',
+        'pakistani indie viral hits faheem abdullah abdul hannan asim azhar',
+        'coke studio season 14 season 15 all hits official'
       ];
-      saavnQueries = ['coke studio hits pasoori afreen khalasi'];
+      saavnQueries = [
+        'coke studio hits pasoori afreen khalasi',
+        'pakistani pop hits kaifi khalil ali sethi'
+      ];
     } else if (catLower.includes('hustle') || catLower.includes('reality')) {
-      // 5. HUSTLE & REALITY SHOWS (Youngsters' breakout reality show hits)
+      // 5. HUSTLE & REALITY SHOWS
       ytsQueries = [
         'mtv hustle viral hit songs king mc square paradox bella srushti tawade official',
         'mtv hustle season 3 season 4 top songs uday pandhi mrunal shankar 99side lashcurry sujal',
         'hustle rap reality show young indian artists viral songs gd 47 nazz spectra gravity epr',
-        'indian reality show breakout youngsters original hit songs hustle cypher'
+        'indian reality show breakout youngsters original hit songs hustle cypher',
+        'mtv hustle best performances rap bangers official audio',
+        'desi hip hop hustle squad underground cypher'
       ];
-      saavnQueries = ['mtv hustle king mc square paradox bella'];
+      saavnQueries = [
+        'mtv hustle king mc square paradox bella',
+        'hustle rap cypher 2026'
+      ];
     } else if (isSouthSection) {
-      // 6. SOUTH (Strictly authentic South Indian Tamil, Telugu, Malayalam, Kannada chartbusters)
+      // 6. SOUTH HITS
       ytsQueries = [
         'tamil telugu superhit songs anirudh ravichander devi sri prasad thaman s sid sriram official video',
         'south indian viral hits kollywood tollywood mollywood illuminati aasa kooda kurchi madathapetti chuttamalle',
         'tamil telugu malayalam kannada hit songs ar rahman yuvan shankar raja sushin shyam gv prakash',
-        'south indian blockbuster movie songs dhanush vijay thalapathy allu arjun sanjith hegde'
+        'south indian blockbuster movie songs dhanush vijay thalapathy allu arjun sanjith hegde',
+        'anirudh ravichander latest hits devara leo jailer hukum spark',
+        'telugu & tamil trending chartbusters 2026 official'
       ];
-      saavnQueries = ['tamil telugu hits anirudh sid sriram devi sri prasad'];
-    } else if (catLower.includes('hip hop') || catLower.includes('hip-hop') || catLower.includes('rap')) {
-      // 7. HIP-HOP (Mostly Indian Rappers ~80% + Outer Rappers ~20%)
+      saavnQueries = [
+        'tamil telugu hits anirudh sid sriram devi sri prasad',
+        'south viral hits 2026'
+      ];
+    } else if (catLower.includes('hip hop') || catLower.includes('hip-hop') || catLower.includes('desi hip hop') || catLower.includes('rap')) {
+      // 7. DESI HIP HOP
       ytsQueries = [
         'indian hip hop desi rap hits divine krsna seedhe maut raftaar badshah ikka official video',
         'desi rap viral songs mc stan king emiway bantai karma raga yashraj hanumankind official',
         'indian rap chartbusters karan aujla yo yo honey singh prabh deep fotty seven talha anjum',
-        'global hip hop rap hits kendrick lamar eminem travis scott drake central cee official video'
+        'global hip hop rap hits kendrick lamar eminem travis scott drake central cee official video',
+        'desi hip hop underground bangers krsna raftaar seedhe maut lunch boy',
+        'young desi rappers viral drill rap 2026'
       ];
-      saavnQueries = ['desi hip hop divine krsna seedhe maut raftaar badshah'];
-    } else if (catLower.includes('pop')) {
+      saavnQueries = [
+        'desi hip hop divine krsna seedhe maut raftaar badshah',
+        'indian rap hits 2026'
+      ];
+    } else if (catLower.includes('indian pop') || (catLower.includes('pop') && !catLower.includes('hollywood'))) {
       // 8. INDIAN POP
       ytsQueries = [
         'indian pop viral hit songs anuv jain ap dhillon diljit dosanjh akshath nadaaniyan official',
         'desi indie pop hits prateek kuhad zaeden aditya rikhari mitraz darshan raval twin strings',
         'indian pop chartbusters king ritviz armaan malik jasleen royal guru randhawa official',
-        'hindi & punjabi indie pop acoustic hits talwiinder sanam puri gajendra verma'
+        'hindi & punjabi indie pop acoustic hits talwiinder sanam puri gajendra verma',
+        'anuv jain husn baarishein jo tum mere ho official audio',
+        'fresh indian pop indie songs 2026'
       ];
-      saavnQueries = ['indian pop hits anuv jain ap dhillon darshan raval'];
+      saavnQueries = [
+        'indian pop hits anuv jain ap dhillon darshan raval',
+        'indie pop hindi 2026'
+      ];
     } else if (catLower.includes('lo-fi') || catLower.includes('lofi') || catLower.includes('chill')) {
-      // 9. LO-FI CHILL (Chilled songs that give relaxation)
+      // 9. LO-FI CHILL
       ytsQueries = [
         'hindi lofi chill relaxing songs arijit singh anuv jain peaceful mind relax audio',
         'soothing lofi chill songs late night relaxation calm aesthetic hindi indie lofi',
         'chill relaxing lofi version popular songs peaceful evening study vibes audio',
-        'bollywood lofi chill mix peaceful sleep & relaxation unplugged beats'
+        'bollywood lofi chill mix peaceful sleep & relaxation unplugged beats',
+        'aesthetic hindi lofi study beats rain vibe',
+        'late night drive hindi lofi acoustic chill'
       ];
-      saavnQueries = ['hindi lofi chill relaxing songs'];
+      saavnQueries = [
+        'hindi lofi chill relaxing songs',
+        'aesthetic bollywood lofi'
+      ];
     } else if (isSlowedSection) {
-      // 10. SLOWED REVERB (Slowed versions of popular trending songs for night, evening, morning — NO 8D or 80s)
+      // 10. SLOWED REVERB
       ytsQueries = [
         'trending hindi songs slowed and reverb night vibe arijit singh vishal mishra atif aslam',
         'popular viral songs slowed and reverb late night evening morning chill audio',
         'coke studio & indie trending songs slowed and reverb jhol pasoori husn iraday',
-        'top punjabi & english trending songs slowed and reverb night drive vibes'
+        'top punjabi & english trending songs slowed and reverb night drive vibes',
+        'slowed reverb aesthetic hindi songs 2026',
+        'soulful hindi songs slowed and reverb audio'
       ];
-      saavnQueries = ['slowed and reverb trending hindi songs'];
+      saavnQueries = [
+        'slowed and reverb trending hindi songs',
+        'hindi slowed reverb aesthetic'
+      ];
     } else if (catLower.includes('classical') || catLower.includes('rock') || catLower.includes('metal')) {
       // 11. CLASSICAL & ROCK
       ytsQueries = [
         'indian classical fusion sufi rock songs ar rahman nusrat fateh ali khan rahat fateh ali khan kailash kher',
         'hindi rock classics the local train agnee euphoria junoon strings lucky ali official',
         'rock classics anthems linkin park queen imagine dragons coldplay nirvana official',
-        'indian semi classical & sufi rock masterpieces shankar mahadevan javed ali indian ocean'
+        'indian semi classical & sufi rock masterpieces shankar mahadevan javed ali indian ocean',
+        'the local train aaoge tum kabhi choo lo choo lo official audio',
+        'sufi rock hits junoon strings coke studio rock'
       ];
-      saavnQueries = ['classical sufi rock fusion ar rahman the local train'];
+      saavnQueries = [
+        'classical sufi rock fusion ar rahman the local train',
+        'hindi rock hits euphoria agnee'
+      ];
     } else {
       ytsQueries = [
         `${category} hit songs official music video`,
-        `${category} top trending songs 2025 2026 official audio`
+        `${category} top trending songs 2025 2026 official audio`,
+        `${category} new songs 2026`
       ];
       saavnQueries = [category];
     }
 
-    const cacheKey = `${category || 'ALL_TRENDING_150'}`;
+    // On live refresh: shuffle queries using Fisher-Yates so fresh/alternate songs are returned
+    if (isRefresh) {
+      for (let i = ytsQueries.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [ytsQueries[i], ytsQueries[j]] = [ytsQueries[j], ytsQueries[i]];
+      }
+      for (let i = saavnQueries.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [saavnQueries[i], saavnQueries[j]] = [saavnQueries[j], saavnQueries[i]];
+      }
+    }
+
+    const cacheKey = isAllTrending ? 'ALL_TRENDING_150' : category;
+    if (isRefresh) {
+      // Invalidate existing cache for this specific chart so live fresh songs are fetched
+      trendingFeedCache.delete(cacheKey);
+    }
+
     const cachedEntry = trendingFeedCache.get(cacheKey);
     const cacheTTL = 15 * 60 * 1000; // 15 minutes high-speed cache TTL
 
@@ -630,10 +699,10 @@ app.get('/api/feed', async (req, res) => {
       masterPool = [...cachedEntry.tracks];
     } else {
       const [ytsSettled, saavnSettled] = await Promise.all([
-        Promise.allSettled(ytsQueries.map((q) => yts(q))),
+        Promise.allSettled(ytsQueries.slice(0, 4).map((q) => yts(q))),
         Promise.allSettled([
-          ...saavnQueries.map((q) => fetchSaavnTracksForQuery(q, !category ? 40 : 25, 1)),
-          ...(!category ? saavnQueries.slice(0, 2).map((q) => fetchSaavnTracksForQuery(q, 35, 2)) : [])
+          ...saavnQueries.map((q) => fetchSaavnTracksForQuery(q, isAllTrending ? 40 : 25, 1)),
+          ...(isAllTrending ? saavnQueries.slice(0, 2).map((q) => fetchSaavnTracksForQuery(q, 35, 2)) : [])
         ])
       ]);
 
@@ -682,10 +751,10 @@ app.get('/api/feed', async (req, res) => {
 
     const pageIndex = pageToken ? parseInt(pageToken, 10) || 0 : 0;
 
-    // Slight real-time rotation on fresh All Trending loads so top 150 feels alive
-    if (pageIndex === 0 && !category && isRefresh && masterPool.length > 6) {
-      const topWindow = masterPool.slice(0, 12);
-      const restWindow = masterPool.slice(12);
+    // Real-time rotation on refresh across ALL 11 charts so top songs are visibly fresh
+    if (pageIndex === 0 && isRefresh && masterPool.length > 6) {
+      const topWindow = masterPool.slice(0, 16);
+      const restWindow = masterPool.slice(16);
       for (let i = topWindow.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [topWindow[i], topWindow[j]] = [topWindow[j], topWindow[i]];
@@ -693,8 +762,12 @@ app.get('/api/feed', async (req, res) => {
       masterPool = [...topWindow, ...restWindow];
     }
 
-    // For All Trending (!category), cap at 150 songs
-    if (!category) {
+    if (isRefresh) {
+      res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    }
+
+    // For All Trending, cap at 150 songs
+    if (isAllTrending) {
       const startIndex = pageIndex * limit;
       const slice = masterPool.slice(startIndex, Math.min(startIndex + limit, 150));
       const hasMoreUpTo150 = startIndex + slice.length < Math.min(masterPool.length, 150);
@@ -2986,19 +3059,33 @@ app.get('/api/resolve', async (req, res) => {
     if (!id) return res.status(400).json({ error: 'Track ID is required' });
 
     // --- RESOLVE JIOSAAVN / GENERAL ---
-    if (!source || source === SEARCH_SOURCES.JIOSAAVN || source === SEARCH_SOURCES.PAGALWORLD) {
+    if (!source || source === SEARCH_SOURCES.JIOSAAVN) {
+      const rawId = String(id).replace('saavn_', '');
+      if (/^[a-zA-Z0-9_-]{5,20}$/.test(rawId) && !rawId.startsWith('dynamic-') && rawId.length !== 11) {
+        try {
+          const stream = await getJioSaavnStream(rawId);
+          if (stream && stream.url) {
+            return res.json({
+              url: stream.url,
+              bitrate: stream.bitrate || '320kbps',
+              format: stream.format || 'audio/mp4',
+              isYouTube: false,
+              id: rawId,
+            });
+          }
+        } catch (_) {}
+      }
+
       if (title) {
         try {
-          const query = `${title} ${artist || ''} audio`.trim();
-          const searchRes = await yts(query);
-          const topVideo = (searchRes?.videos || []).find((v: any) => v.videoId && v.seconds && v.seconds < 540);
-          if (topVideo) {
+          const matched = await matchAndResolveAudio(title as string, artist as string);
+          if (matched && matched.url) {
             return res.json({
-              isYouTube: true,
-              id: topVideo.videoId,
-              embedUrl: `https://www.youtube.com/embed/${topVideo.videoId}?autoplay=1&enablejsapi=1`,
-              bitrate: 'Original HQ',
-              format: 'youtube/iframe'
+              url: matched.url,
+              bitrate: matched.bitrate || '320kbps',
+              format: matched.format || 'audio/mp4',
+              isYouTube: false,
+              id: id,
             });
           }
         } catch (_) {}

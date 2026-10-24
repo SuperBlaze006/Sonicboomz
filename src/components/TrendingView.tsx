@@ -11,7 +11,8 @@ import {
   Radio,
   Sparkles,
   TrendingUp,
-  Disc3
+  Disc3,
+  RefreshCw
 } from 'lucide-react';
 import { optimizeImage, applyAppLogoFallback } from '../lib/imageOptimizer';
 
@@ -23,7 +24,7 @@ interface TrendingViewProps {
   isLoadingMoreFeed: boolean;
   hasMoreFeed: boolean;
   onLoadMoreFeed: () => void;
-  onRefreshFeed: () => void;
+  onRefreshFeed: (categoryKey?: string | null) => void;
   selectedCategory: string | null;
   onSelectCategory: (category: string | null) => void;
   favorites: Track[];
@@ -56,7 +57,7 @@ const GENRE_CARDS: TrendingGenreCardConfig[] = [
     titleLine2: 'Trending',
     titleColor1: '#FFE4E6',
     titleColor2: '#FFFFFF',
-    categoryKey: null,
+    categoryKey: 'All Trending',
     featured: true,
     bgGradient: 'linear-gradient(135deg, #9f1239 0%, #e11d48 55%, #fb7185 100%)',
     glowColor: 'rgba(255, 228, 230, 0.45)',
@@ -298,6 +299,7 @@ export function TrendingView({
   isLoadingMoreFeed,
   hasMoreFeed,
   onLoadMoreFeed,
+  onRefreshFeed,
   selectedCategory,
   onSelectCategory,
   favorites,
@@ -432,26 +434,38 @@ export function TrendingView({
               <span>Back</span>
             </button>
 
-            {feedTracks.length > 0 && (
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleShufflePlay}
-                  className="px-3.5 py-2 rounded-xl bg-black/[0.05] dark:bg-white/[0.07] hover:bg-black/10 dark:hover:bg-white/[0.12] text-gray-800 dark:text-gray-200 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
-                >
-                  <Shuffle size={14} />
-                  <span>Shuffle</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handlePlayAll}
-                  className="px-4 py-2 rounded-xl bg-[var(--theme-color)] text-[var(--theme-text-color,#ffffff)] text-xs font-bold flex items-center gap-1.5 shadow-sm hover:opacity-90 transition-all active:scale-95 cursor-pointer"
-                >
-                  <Play size={14} fill="currentColor" />
-                  <span>Play All</span>
-                </button>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onRefreshFeed(openedSection.categoryKey)}
+                disabled={isLoadingFeed}
+                className="px-3 py-2 rounded-xl bg-black/[0.05] dark:bg-white/[0.07] hover:bg-black/10 dark:hover:bg-white/[0.12] text-gray-800 dark:text-gray-200 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                title="Refresh chart with fresh songs"
+              >
+                <RefreshCw size={13} className={isLoadingFeed ? 'animate-spin' : ''} />
+                <span>Refresh</span>
+              </button>
+              {feedTracks.length > 0 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleShufflePlay}
+                    className="px-3.5 py-2 rounded-xl bg-black/[0.05] dark:bg-white/[0.07] hover:bg-black/10 dark:hover:bg-white/[0.12] text-gray-800 dark:text-gray-200 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Shuffle size={14} />
+                    <span>Shuffle</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePlayAll}
+                    className="px-4 py-2 rounded-xl bg-[var(--theme-color)] text-[var(--theme-text-color,#ffffff)] text-xs font-bold flex items-center gap-1.5 shadow-sm hover:opacity-90 transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Play size={14} fill="currentColor" />
+                    <span>Play All</span>
+                  </button>
+                </>
+              )}
+            </div>
           </header>
 
           {/* Clean Satin Banner (Completely Free of 3D Characters) */}
@@ -665,6 +679,17 @@ export function TrendingView({
                 Curated streaming charts, viral sound tracks & regional powerhouses
               </p>
             </div>
+
+            <button
+              type="button"
+              onClick={() => onRefreshFeed(null)}
+              disabled={isLoadingFeed}
+              className="px-3.5 py-2 rounded-xl bg-black/[0.05] dark:bg-white/[0.07] hover:bg-black/10 dark:hover:bg-white/[0.12] text-gray-800 dark:text-gray-200 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+              title="Refresh trending charts"
+            >
+              <RefreshCw size={13} className={isLoadingFeed ? 'animate-spin' : ''} />
+              <span>Refresh</span>
+            </button>
           </div>
 
           {/* 11 Genre Cards Grid */}

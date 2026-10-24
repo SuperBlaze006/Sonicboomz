@@ -40,6 +40,8 @@ import {
 
 import { applyThemeVariables } from './lib/themeUtils';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { InstallAppModal } from './components/InstallAppModal';
+import { AppLaunchLoadingScreen } from './components/AppLaunchLoadingScreen';
 
 export default function App() {
   // Global State
@@ -60,6 +62,7 @@ export default function App() {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [showPlayerOverlay, setShowPlayerOverlay] = useState(false);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
   
   // Firebase Auth & Cloud Sync State
   const [user, setUser] = useState<User | null>(null);
@@ -240,6 +243,36 @@ export default function App() {
   const isShuffleRef = useRef(isShuffle);
   const repeatModeRef = useRef(repeatMode);
   const wakeLockRef = useRef<any>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioKeepAliveGainRef = useRef<GainNode | null>(null);
+
+  // Background Audio Keep-Alive for Mobile/Android PWA
+  // Creates an ultra-low sub-audible carrier stream so Android OS recognizes an active
+  // foreground audio session and does not suspend the process when the device screen locks.
+  const ensureAudioKeepAlive = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+
+      if (!audioContextRef.current) {
+        const ctx = new AudioCtx();
+        audioContextRef.current = ctx;
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        gain.gain.value = 0.00001; // Inaudible, holds active Android AudioTrack session
+        osc.frequency.value = 20; // 20Hz sub-audible
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        audioKeepAliveGainRef.current = gain;
+      }
+
+      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume().catch(() => {});
+      }
+    } catch (_) {}
+  };
 
   const requestWakeLock = async () => {
     if ('wakeLock' in navigator) {
@@ -264,6 +297,13 @@ export default function App() {
     const handleVisibilityChange = () => {
       if (!document.hidden && isPlaying) {
         requestWakeLock();
+      }
+      if (document.hidden && isPlaying) {
+        // Device screen turned off or app backgrounded: maintain audio session & active media session state
+        ensureAudioKeepAlive();
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.playbackState = 'playing';
+        }
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -618,7 +658,7 @@ export default function App() {
       const targetLimit = 40;
       let endpoint = `/api/feed?limit=${targetLimit}`;
       if (forceRefresh) {
-        endpoint += `&refresh=true`;
+        endpoint += `&refresh=true&_t=${Date.now()}`;
       }
       if (cat) {
         endpoint += `&category=${encodeURIComponent(cat)}`;
@@ -695,9 +735,11 @@ export default function App() {
     }
   }, [activeTab, selectedCategory]);
 
-  const handleRefreshTrending = () => {
-    fetchFeed('Trending Now', selectedCategory, null, false, true);
-    showToast('Charts updated in real-time with fresh tracks');
+  const handleRefreshTrending = (specificCategory?: string | null) => {
+    const targetCategory = specificCategory !== undefined ? specificCategory : selectedCategory;
+    fetchFeed('Trending Now', targetCategory, null, false, true);
+    const chartLabel = targetCategory ? (targetCategory === 'All Trending' ? 'All Trending Chart' : `${targetCategory} Chart`) : 'Trending Charts';
+    showToast(`Refreshed ${chartLabel} with live tracks`);
   };
 
   const handleLoadMoreFeed = () => {
@@ -1031,6 +1073,7 @@ export default function App() {
   const safePlay = async () => {
     const audio = audioRef.current;
     if (!audio) return;
+    ensureAudioKeepAlive();
     try {
       const promise = audio.play();
       playPromiseRef.current = promise;
@@ -1064,12 +1107,7 @@ export default function App() {
     // Check if another song was selected during resolution
     if (requestId !== activeRequestIdRef.current) return;
 
-    try {
-      audio.pause();
-      audio.removeAttribute('src');
-      audio.load(); // Force browser engine to discard previous buffer cleanly without firing invalid URL error
-    } catch (_) {}
-
+    ensureAudioKeepAlive();
     audio.src = src;
     setupMediaSession(track);
 
@@ -1263,10 +1301,12 @@ export default function App() {
       if (requestId !== activeRequestIdRef.current) return;
 
       if (data && data.url) {
+        resolvedUrlsCacheRef.current[track.id] = data.url;
         playerModeRef.current = 'html5';
         setPlayerMode('html5');
         ytController.pause();
         await loadAndPlaySource(data.url, track, requestId);
+        setTimeout(preResolveNextTrack, 1500);
       } else if (data && (data.isYouTube || data.embedUrl)) {
         playerModeRef.current = 'youtube';
         setPlayerMode('youtube');
@@ -1362,22 +1402,51 @@ export default function App() {
       } catch (_) {}
 
       try {
-        navigator.mediaSession.setActionHandler('play', () => {
-          if (playerModeRef.current === 'youtube') {
-            ytController.play();
-            setIsPlaying(true);
+        const handleHeadphoneActionTap = (action: 'play' | 'pause') => {
+          const now = Date.now();
+          if (now - lastHeadphoneTapTimeRef.current < 450) {
+            headphoneTapCountRef.current += 1;
           } else {
-            safePlay();
+            headphoneTapCountRef.current = 1;
           }
-        });
-        navigator.mediaSession.setActionHandler('pause', () => {
-          if (playerModeRef.current === 'youtube') {
-            ytController.pause();
-            setIsPlaying(false);
-          } else {
-            safePause();
+          lastHeadphoneTapTimeRef.current = now;
+
+          if (headphoneTapTimerRef.current) {
+            clearTimeout(headphoneTapTimerRef.current);
           }
-        });
+
+          headphoneTapTimerRef.current = setTimeout(() => {
+            const count = headphoneTapCountRef.current;
+            headphoneTapCountRef.current = 0;
+            if (count === 2) {
+              // 2 taps: Skip to next track
+              handleNext();
+            } else if (count >= 3) {
+              // 3 taps: Skip to previous track
+              handlePrev();
+            } else {
+              // 1 tap: Play / Pause toggle
+              if (action === 'play') {
+                if (playerModeRef.current === 'youtube') {
+                  ytController.play();
+                  setIsPlaying(true);
+                } else {
+                  safePlay();
+                }
+              } else {
+                if (playerModeRef.current === 'youtube') {
+                  ytController.pause();
+                  setIsPlaying(false);
+                } else {
+                  safePause();
+                }
+              }
+            }
+          }, 280);
+        };
+
+        navigator.mediaSession.setActionHandler('play', () => handleHeadphoneActionTap('play'));
+        navigator.mediaSession.setActionHandler('pause', () => handleHeadphoneActionTap('pause'));
         navigator.mediaSession.setActionHandler('nexttrack', () => handleNext());
         navigator.mediaSession.setActionHandler('previoustrack', () => handlePrev());
         navigator.mediaSession.setActionHandler('seekto', (details) => {
@@ -1902,6 +1971,7 @@ export default function App() {
             themeColor={themeColor}
             user={user}
             onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenInstallModal={() => setIsInstallModalOpen(true)}
           />
         </div>
 
@@ -2167,8 +2237,18 @@ export default function App() {
       {/* Offline Connectivity Indicator */}
       <OfflineIndicator />
 
+      {/* App Launch Splash & Loading Screen */}
+      <AppLaunchLoadingScreen onOpenInstall={() => setIsInstallModalOpen(true)} />
+
+      {/* Dedicated Animated Install App Modal / Loading Page */}
+      <InstallAppModal
+        isOpen={isInstallModalOpen}
+        onClose={() => setIsInstallModalOpen(false)}
+        themeColor={themeColor}
+      />
+
       {/* Hidden Audio Element (HTML5) */}
-      <audio ref={audioRef} preload="auto" playsInline />
+      <audio ref={audioRef} preload="auto" playsInline crossOrigin="anonymous" />
     </div>
   );
 }
