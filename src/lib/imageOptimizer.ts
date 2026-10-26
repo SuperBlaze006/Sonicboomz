@@ -37,9 +37,6 @@ export function applyAppLogoFallback(
     if (!img.src.endsWith(DEFAULT_FALLBACK_COVER)) {
       img.src = DEFAULT_FALLBACK_COVER;
     }
-    if (track && typeof track === 'object') {
-      track.coverUrl = DEFAULT_FALLBACK_COVER;
-    }
   }
 }
 
@@ -54,13 +51,9 @@ export function optimizeImage(url?: string, options: { width?: number; quality?:
 
   const { width = 400, quality = 82 } = options;
 
-  // 1. YouTube thumbnail optimization -> Use YouTube native WebP endpoints where possible
-  // Never pass YouTube thumbnails through wsrv.nl so 120x90 missing-thumbnail placeholders stay detectable
+  // 1. YouTube thumbnail optimization -> Keep reliable hqdefault.jpg which is guaranteed to exist for all videos
   if (url.includes('i.ytimg.com/') || url.includes('img.youtube.com/')) {
-    return url
-      .replace('img.youtube.com/vi/', 'i.ytimg.com/vi_webp/')
-      .replace('i.ytimg.com/vi/', 'i.ytimg.com/vi_webp/')
-      .replace(/\.(jpg|jpeg|png)$/i, '.webp');
+    return url.replace('img.youtube.com/vi/', 'i.ytimg.com/vi/');
   }
 
   // 2. JioSaavn CDN images -> Replace extension and dimension for high-quality WebP

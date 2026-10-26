@@ -11,6 +11,16 @@ export interface PopularAlbumItem {
 
 export const POPULAR_ALBUMS_AND_SINGLES: PopularAlbumItem[] = [
   {
+    id: 'single-casa-tupka',
+    title: 'Casa Tupka Anthemo',
+    artist: 'Yo Yo Honey Singh, Priyanshi',
+    year: 2026,
+    type: 'Single',
+    coverUrl: 'https://i.ytimg.com/vi/vRjaGgDsWSo/hqdefault.jpg',
+    query: 'Casa Tupka Anthemo Yo Yo Honey Singh official music video',
+    trackCount: 1
+  },
+  {
     id: 'album-aujla-szn-1',
     title: 'Aujla Szn 1',
     artist: 'Karan Aujla, Mxrci',

@@ -122,10 +122,15 @@ class YouTubeController {
   }
 
   public loadAndPlay(videoId: string) {
+    if (!videoId || typeof videoId !== 'string') return;
     if (this.isReady && this.player && typeof this.player.loadVideoById === 'function') {
       try {
         if (typeof this.player.unMute === 'function') this.player.unMute();
         if (typeof this.player.setVolume === 'function') this.player.setVolume(100);
+        // Force stop previous audio to prevent playing the last listened song
+        if (typeof this.player.stopVideo === 'function') {
+          this.player.stopVideo();
+        }
         this.player.loadVideoById(videoId);
         this.player.playVideo();
       } catch (e) {

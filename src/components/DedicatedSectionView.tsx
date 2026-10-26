@@ -430,12 +430,14 @@ export function DedicatedSectionView({
                   </>
                 )}
                 <span>•</span>
-                <span>{tracks.length} tracks</span>
+                <span>{tracks.length} {tracks.length === 1 ? 'track' : 'tracks'}</span>
               </div>
 
-              <p className="text-xs sm:text-sm text-gray-400 font-normal max-w-2xl">
-                {subtitle}
-              </p>
+              {subtitle && (!artistName || !subtitle.includes(artistName)) && (
+                <p className="text-xs sm:text-sm text-gray-400 font-normal max-w-2xl">
+                  {subtitle}
+                </p>
+              )}
 
               {/* Play All, Shuffle & Refresh Buttons in Line */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2">

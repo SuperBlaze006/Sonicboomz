@@ -15,16 +15,26 @@ export async function onRequestGet(context: { request: Request }) {
 
   const result = getArtistsByTaste(tasteTags, page, limit);
 
-  // If page exceeds master database, cycle through discovered artists
+  // Infinite continuation: cycle through artists database indefinitely
   if (result.artists.length === 0 && ARTISTS_DATABASE.length > 0) {
     const startIndex = ((page - 1) * limit) % ARTISTS_DATABASE.length;
     const cycled = [...ARTISTS_DATABASE.slice(startIndex), ...ARTISTS_DATABASE.slice(0, startIndex)].slice(0, limit);
+    const uniqueCycled = cycled.map((a, idx) => ({
+      ...a,
+      id: `${a.id}-p${page}-${idx}`
+    }));
     return jsonResponse({
-      artists: cycled,
-      total: ARTISTS_DATABASE.length,
+      artists: uniqueCycled,
+      total: 999999,
+      page,
       hasMore: true
     });
   }
 
-  return jsonResponse(result);
+  return jsonResponse({
+    ...result,
+    total: 999999,
+    page,
+    hasMore: true
+  });
 }

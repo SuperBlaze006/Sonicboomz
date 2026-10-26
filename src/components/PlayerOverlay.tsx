@@ -133,7 +133,8 @@ export function PlayerOverlay({
   const [useAppLogoFallback, setUseAppLogoFallback] = useState(false);
 
   useEffect(() => {
-    setUseAppLogoFallback(!currentTrack?.coverUrl || currentTrack.coverUrl === '/app-logo.svg');
+    const hasValidCover = Boolean(currentTrack?.coverUrl && currentTrack.coverUrl !== '/app-logo.svg' && currentTrack.coverUrl.trim() !== '');
+    setUseAppLogoFallback(!hasValidCover);
   }, [currentTrack?.id, currentTrack?.coverUrl]);
 
   // New Playlist inline creation
@@ -580,12 +581,16 @@ export function PlayerOverlay({
               draggable={false}
               onError={(e) => {
                 applyAppLogoFallback(e, currentTrack);
-                setUseAppLogoFallback(true);
+                if (e.currentTarget.src.endsWith('/app-logo.svg')) {
+                  setUseAppLogoFallback(true);
+                }
               }}
               onLoad={(e) => {
                 if (e.currentTarget.naturalWidth === 120 && e.currentTarget.naturalHeight === 90) {
                   applyAppLogoFallback(e, currentTrack);
-                  setUseAppLogoFallback(true);
+                  if (e.currentTarget.src.endsWith('/app-logo.svg')) {
+                    setUseAppLogoFallback(true);
+                  }
                 }
               }}
             />
@@ -918,12 +923,16 @@ export function PlayerOverlay({
                   className="w-13 h-13 rounded-2xl object-cover shadow-md border border-white/10 shrink-0"
                   onError={(e) => {
                     applyAppLogoFallback(e, currentTrack);
-                    setUseAppLogoFallback(true);
+                    if (e.currentTarget.src.endsWith('/app-logo.svg')) {
+                      setUseAppLogoFallback(true);
+                    }
                   }}
                   onLoad={(e) => {
                     if (e.currentTarget.naturalWidth === 120 && e.currentTarget.naturalHeight === 90) {
                       applyAppLogoFallback(e, currentTrack);
-                      setUseAppLogoFallback(true);
+                      if (e.currentTarget.src.endsWith('/app-logo.svg')) {
+                        setUseAppLogoFallback(true);
+                      }
                     }
                   }}
                 />

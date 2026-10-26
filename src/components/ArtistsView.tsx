@@ -1126,7 +1126,7 @@ export function ArtistsView({
               </div>
 
               <div className="space-y-1">
-                {artistData.popularSongs.map((track, idx) => {
+                {(artistData?.popularSongs || []).map((track, idx) => {
                   const collabs = extractCollabArtists(track.title, artistData.name);
                   return (
                     <div
@@ -1365,7 +1365,7 @@ export function ArtistsView({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {artistData.playlists.map((pl) => (
+                {(artistData?.playlists || []).map((pl) => (
                   <div
                     key={pl.id}
                     onClick={() => {

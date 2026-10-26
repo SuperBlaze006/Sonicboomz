@@ -1,4 +1,5 @@
 import { jsonResponse } from '../_lib/utils';
+import { searchYouTube } from '../_lib/musicSources';
 import CryptoJS from 'crypto-js';
 
 // Decrypt encrypted JioSaavn media URL using DES-ECB with key '38346591'
@@ -217,12 +218,24 @@ export async function onRequestGet(context: { request: Request }) {
     }
   }
 
-  // 4. Safe YouTube fallback if direct audio stream is unavailable
-  const fallbackId = (id && id.length === 11 && !id.startsWith('dynamic-')) ? id : 'Tk9TM7-eTmw';
+  // 4. Authentic YouTube resolution if direct audio stream is unavailable
+  let resolvedYtId = (id && id.length === 11 && !id.startsWith('dynamic-') && !id.includes('_')) ? id : null;
+
+  if (!resolvedYtId && (title || artist)) {
+    try {
+      const ytMatches = await searchYouTube(`${artist} ${title} official audio`, 3);
+      if (ytMatches.length > 0 && ytMatches[0].id) {
+        resolvedYtId = ytMatches[0].id;
+      }
+    } catch (_) {}
+  }
+
+  const finalId = resolvedYtId || (id && id.length === 11 ? id : 'vRjaGgDsWSo');
+
   return jsonResponse({
     isYouTube: true,
-    id: fallbackId,
-    embedUrl: `https://www.youtube.com/embed/${fallbackId}?autoplay=1&enablejsapi=1`,
+    id: finalId,
+    embedUrl: `https://www.youtube.com/embed/${finalId}?autoplay=1&enablejsapi=1`,
     bitrate: 'Original HQ Audio',
     format: 'youtube/iframe'
   });

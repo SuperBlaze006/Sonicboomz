@@ -1115,11 +1115,26 @@ export default function App() {
     } catch (_) {}
   };
 
-  const switchToYouTubePlayer = (videoId: string, track: Track) => {
+  const switchToYouTubePlayer = async (videoId: string, track: Track) => {
     playerModeRef.current = 'youtube';
     setPlayerMode('youtube');
     startSilentAudioCarrier();
-    ytController.loadAndPlay(videoId);
+
+    let targetId = videoId;
+    if (!targetId || targetId.length !== 11 || targetId.includes('_') || targetId.startsWith('dynamic-')) {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(`${track.artist || ''} ${track.title || ''} song`)}&source=youtube`);
+        if (res.ok) {
+          const data = await res.json();
+          const first = data.results?.[0];
+          if (first?.id && first.id.length === 11) {
+            targetId = first.id;
+          }
+        }
+      } catch (_) {}
+    }
+
+    ytController.loadAndPlay(targetId);
     setIsPlaying(true);
     setupMediaSession(track);
   };

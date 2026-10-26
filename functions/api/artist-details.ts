@@ -55,6 +55,38 @@ export async function onRequestGet(context: { request: Request }) {
     image: a.image
   }));
 
+  // Discography items
+  const discography = (albums || []).map((alb, idx) => ({
+    id: alb.id || `alb-${idx}`,
+    title: alb.title,
+    artist: alb.artist || cleanName,
+    year: alb.year || 2025,
+    type: alb.type || 'Album',
+    trackCount: alb.trackCount || 8,
+    coverUrl: alb.coverUrl,
+    genre: artistMeta.genre || 'Music'
+  }));
+
+  // Curated artist official playlists
+  const playlists = [
+    {
+      id: `pl-${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '')}-1`,
+      title: `This Is ${cleanName}`,
+      subtitle: `Essential hits, chart-toppers and breakthrough anthems from ${cleanName}`,
+      year: 2026,
+      trackCount: Math.max(12, popularSongs.length),
+      coverUrl: artistMeta.header || artistMeta.avatar || (popularSongs[0]?.coverUrl) || '/app-logo.svg'
+    },
+    {
+      id: `pl-${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '')}-2`,
+      title: `${cleanName} Radio`,
+      subtitle: `Non-stop flow of ${cleanName} plus similar top genre artists`,
+      year: 2026,
+      trackCount: 25,
+      coverUrl: artistMeta.avatar || artistMeta.header || (popularSongs[1]?.coverUrl) || '/app-logo.svg'
+    }
+  ];
+
   return jsonResponse({
     name: cleanName,
     artist: cleanName,
@@ -66,6 +98,8 @@ export async function onRequestGet(context: { request: Request }) {
     verified: artistMeta.verified,
     popularSongs,
     albums,
+    discography,
+    playlists,
     similarArtists: similar,
     source: 'cloudflare_pages_edge'
   });
