@@ -1,20 +1,23 @@
 import { CloudflareEnv } from '../_lib/types';
 import { jsonResponse } from '../_lib/utils';
-import { CURATED_POPULAR_TRACKS, searchJioSaavn, searchItunes, fetchLiveAlbums } from '../_lib/musicSources';
+import { searchYouTube, CURATED_POPULAR_TRACKS, searchJioSaavn, searchItunes, fetchLiveAlbums } from '../_lib/musicSources';
 import { ARTISTS_DATABASE } from '../_lib/artistsCatalog';
 
 export async function onRequestGet(context: { request: Request; env: CloudflareEnv }) {
-  const { request } = context;
+  const { request, env } = context;
   const url = new URL(request.url);
   const isRefresh = url.searchParams.get('refresh') === 'true';
 
   // High-yield parallel queries across key genres
-  const [popHindi, popPunjabi, popGlobal, popAlbums] = await Promise.allSettled([
+  const [popYt, popHindi, popPunjabi, popGlobal, popAlbums] = await Promise.allSettled([
+    searchYouTube('top trending songs 2026 official video', 15),
     searchJioSaavn('top bollywood hits 2026 arijit singh vishal mishra', 18, 1),
     searchJioSaavn('top punjabi hits 2026 karan aujla diljit dosanjh', 18, 1),
     searchItunes('top hits 2026 the weeknd billie eilish sabrina carpenter', 18),
     fetchLiveAlbums('2026 new hit album', 14, 1)
   ]);
+
+  const ytHits = popYt.status === 'fulfilled' && popYt.value.length > 0 ? popYt.value : [];
 
   const hindiTracks = popHindi.status === 'fulfilled' && popHindi.value.length > 0 
     ? popHindi.value 
@@ -30,6 +33,7 @@ export async function onRequestGet(context: { request: Request; env: CloudflareE
 
   // Interleave for Popular tracks
   const popularTracks = [
+    ...ytHits,
     ...CURATED_POPULAR_TRACKS,
     ...hindiTracks.slice(0, 8),
     ...punjabiTracks.slice(0, 8),

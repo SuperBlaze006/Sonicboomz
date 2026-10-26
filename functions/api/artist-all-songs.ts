@@ -1,6 +1,6 @@
 import { Track } from '../_lib/types';
 import { jsonResponse } from '../_lib/utils';
-import { searchJioSaavn, searchItunes } from '../_lib/musicSources';
+import { searchYouTube, searchJioSaavn, searchItunes } from '../_lib/musicSources';
 import { parseCollabInfo } from '../_lib/artistsCatalog';
 
 export async function onRequestGet(context: { request: Request }) {
@@ -17,12 +17,13 @@ export async function onRequestGet(context: { request: Request }) {
 
   const cleanName = rawName.replace(/ - Topic|VEVO/gi, '').trim();
 
-  const [saavnTracks, itunesTracks] = await Promise.all([
+  const [ytTracks, saavnTracks, itunesTracks] = await Promise.all([
+    searchYouTube(`${cleanName} all songs official tracks`, limit),
     searchJioSaavn(cleanName, limit, page),
     searchItunes(cleanName, limit)
   ]);
 
-  const combined: Track[] = [...saavnTracks, ...itunesTracks];
+  const combined: Track[] = [...ytTracks, ...saavnTracks, ...itunesTracks];
   const seenIds = new Set<string>();
   const songs: Track[] = [];
 

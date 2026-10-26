@@ -1,1 +1,5 @@
-/*    /index.html   200
+# Cloudflare Pages Functions - Direct API routing
+/api/*  /api/:splat  200
+
+# Single Page Application (SPA) client-side routing fallback
+/*      /index.html  200

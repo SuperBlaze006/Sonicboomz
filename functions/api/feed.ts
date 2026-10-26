@@ -1,7 +1,7 @@
 import { Track, CloudflareEnv } from '../_lib/types';
 import { jsonResponse } from '../_lib/utils';
 import { ensureD1Tables } from '../_lib/db';
-import { CURATED_POPULAR_TRACKS, searchJioSaavn, searchItunes } from '../_lib/musicSources';
+import { CURATED_POPULAR_TRACKS, getCategoryFallbackTracks, searchYouTube, searchJioSaavn, searchItunes } from '../_lib/musicSources';
 
 export { CURATED_POPULAR_TRACKS as FALLBACK_TRACKS };
 
@@ -195,11 +195,13 @@ export async function onRequestGet(context: { request: Request; env: CloudflareE
     } catch (_) {}
   }
 
-  // 2. Fetch live multi-source tracks across complementary queries & native pagination
-  const [saavn1, saavn2, itunesTracks] = await Promise.all([
-    searchJioSaavn(query1, 25, saavnPage),
-    searchJioSaavn(query2, 25, saavnPage),
-    searchItunes(query1, 20)
+  // 2. Fetch live multi-source tracks across complementary queries (YouTube, JioSaavn, iTunes)
+  const [ytTracks1, ytTracks2, saavn1, saavn2, itunesTracks] = await Promise.all([
+    searchYouTube(query1, 20),
+    searchYouTube(query2, 20),
+    searchJioSaavn(query1, 20, saavnPage),
+    searchJioSaavn(query2, 20, saavnPage),
+    searchItunes(query1, 15)
   ]);
 
   const seenIds = new Set<string>();
@@ -211,7 +213,7 @@ export async function onRequestGet(context: { request: Request; env: CloudflareE
     return /\b(199\d|200\d|2010|2011|2012|2013|2014|2015|2016|2017|2018)\b/.test(title);
   };
 
-  for (const track of [...d1Tracks, ...saavn1, ...saavn2, ...itunesTracks]) {
+  for (const track of [...ytTracks1, ...ytTracks2, ...d1Tracks, ...saavn1, ...saavn2, ...itunesTracks]) {
     if (!track || !track.id || !track.title) continue;
     if (isAncientYear(track.title)) continue;
 
@@ -223,9 +225,10 @@ export async function onRequestGet(context: { request: Request; env: CloudflareE
     }
   }
 
-  // Fallback ONLY on Page 1 if live results returned empty
+  // Fallback ONLY on Page 1 if live results returned empty: Use distinct category fallbacks
   if (combined.length === 0 && page === 1) {
-    for (const track of CURATED_POPULAR_TRACKS) {
+    const categoryFallbacks = getCategoryFallbackTracks(category);
+    for (const track of categoryFallbacks) {
       const key = normalizeTrackKey(track.title, track.artist);
       if (!seenIds.has(track.id) && !seenKeys.has(key)) {
         seenIds.add(track.id);

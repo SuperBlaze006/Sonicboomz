@@ -5,26 +5,16 @@
  * local development, AI Studio preview, and direct Render hosting seamless.
  */
 
-export const RENDER_BACKEND_URL = 'https://sonicboomz.onrender.com';
-
 export function getApiBaseUrl(): string {
-  // 1. Explicit environment variable override
+  // 1. Explicit environment variable override if provided
   const envUrl = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '') as string;
   if (envUrl && typeof envUrl === 'string') {
     return envUrl.replace(/\/+$/, '');
   }
 
-  // 2. Check current browser hostname
-  if (typeof window !== 'undefined') {
-    const { hostname } = window.location;
-    // Only use Render backend when explicitly running on Cloudflare Pages static hosting.
-    // For local development, AI Studio preview (.run.app), or direct Render hosting, use local relative paths ('').
-    if (hostname.includes('pages.dev') || hostname.includes('github.io')) {
-      return RENDER_BACKEND_URL;
-    }
-    return '';
-  }
-
+  // 2. Default to same-origin relative URLs ('/api/...').
+  // This seamlessly uses Cloudflare Pages Functions (/functions/api/...) on pages.dev,
+  // local development server on localhost, AI Studio preview (.run.app), and installed PWA.
   return '';
 }
 

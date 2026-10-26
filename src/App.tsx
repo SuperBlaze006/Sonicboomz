@@ -1099,6 +1099,31 @@ export default function App() {
     playPromiseRef.current = null;
   };
 
+  // Inaudible audio carrier keeps Android/iOS audio session active in background when YouTube is playing
+  const SILENT_AUDIO_DATA_URI = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+  const startSilentAudioCarrier = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    try {
+      ensureAudioKeepAlive();
+      if (audio.src !== SILENT_AUDIO_DATA_URI) {
+        audio.src = SILENT_AUDIO_DATA_URI;
+      }
+      audio.loop = true;
+      audio.volume = 0.0001; // Ultra-low sub-audible carrier holds active Android AudioTrack session
+      audio.play().catch(() => {});
+    } catch (_) {}
+  };
+
+  const switchToYouTubePlayer = (videoId: string, track: Track) => {
+    playerModeRef.current = 'youtube';
+    setPlayerMode('youtube');
+    startSilentAudioCarrier();
+    ytController.loadAndPlay(videoId);
+    setIsPlaying(true);
+    setupMediaSession(track);
+  };
+
   // Safe audio loader: gracefully handles transitioning from previous media to new URL
   const loadAndPlaySource = async (src: string, track: Track, requestId: number) => {
     const audio = audioRef.current;
@@ -1308,31 +1333,16 @@ export default function App() {
         await loadAndPlaySource(data.url, track, requestId);
         setTimeout(preResolveNextTrack, 1500);
       } else if (data && (data.isYouTube || data.embedUrl)) {
-        playerModeRef.current = 'youtube';
-        setPlayerMode('youtube');
-        safePause();
-        ytController.loadAndPlay(data.id || track.id);
-        setIsPlaying(true);
-        setupMediaSession(track);
+        switchToYouTubePlayer(data.id || track.id, track);
       } else {
         // Fallback to YouTube engine directly
-        playerModeRef.current = 'youtube';
-        setPlayerMode('youtube');
-        safePause();
-        ytController.loadAndPlay(track.id);
-        setIsPlaying(true);
-        setupMediaSession(track);
+        switchToYouTubePlayer(track.id, track);
       }
     } catch (err: any) {
       if (requestId !== activeRequestIdRef.current) return;
       console.warn('Handling play error gracefully with YouTube fallback:', err);
       if (track.id) {
-        playerModeRef.current = 'youtube';
-        setPlayerMode('youtube');
-        safePause();
-        ytController.loadAndPlay(track.id);
-        setIsPlaying(true);
-        setupMediaSession(track);
+        switchToYouTubePlayer(track.id, track);
       }
     }
   };
@@ -1732,10 +1742,12 @@ export default function App() {
     if (playerMode === 'youtube') {
       if (isPlaying) {
         userPausedManuallyRef.current = true;
+        safePause();
         ytController.pause();
         setIsPlaying(false);
       } else {
         userPausedManuallyRef.current = false;
+        startSilentAudioCarrier();
         ytController.play();
         setIsPlaying(true);
       }

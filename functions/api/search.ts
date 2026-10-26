@@ -1,7 +1,7 @@
 import { CloudflareEnv, Track } from '../_lib/types';
 import { jsonResponse } from '../_lib/utils';
 import { ensureD1Tables } from '../_lib/db';
-import { searchJioSaavn, searchItunes, CURATED_POPULAR_TRACKS } from '../_lib/musicSources';
+import { searchYouTube, searchJioSaavn, searchItunes, CURATED_POPULAR_TRACKS } from '../_lib/musicSources';
 
 export async function onRequestGet(context: { request: Request; env: CloudflareEnv }) {
   const { request, env } = context;
@@ -32,16 +32,18 @@ export async function onRequestGet(context: { request: Request; env: CloudflareE
     } catch (_) {}
   }
 
-  // 2. Fetch live parallel results from JioSaavn and iTunes
-  const [saavnRes, itunesRes] = await Promise.allSettled([
-    searchJioSaavn(query, 24, page),
-    searchItunes(query, 20)
+  // 2. Fetch live parallel results from YouTube, JioSaavn, and iTunes
+  const [ytRes, saavnRes, itunesRes] = await Promise.allSettled([
+    searchYouTube(query, 25),
+    searchJioSaavn(query, 20, page),
+    searchItunes(query, 15)
   ]);
 
+  const ytTracks = ytRes.status === 'fulfilled' ? ytRes.value : [];
   const saavnTracks = saavnRes.status === 'fulfilled' ? saavnRes.value : [];
   const itunesTracks = itunesRes.status === 'fulfilled' ? itunesRes.value : [];
 
-  const combined: Track[] = [...d1Results];
+  const combined: Track[] = [...d1Results, ...ytTracks];
   const seenKeys = new Set<string>(combined.map(t => `${t.title.toLowerCase()}::${t.artist.toLowerCase()}`));
 
   for (const track of [...saavnTracks, ...itunesTracks]) {
