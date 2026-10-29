@@ -180,7 +180,7 @@ export function PlayerOverlay({
             encoding: 'Direct Stream Pure Audio',
             dynamicRange: 'Master Quality Authenticated'
           },
-          ownershipStatement: data.ownershipStatement || 'All musical works, sound recordings, performances, and lyrics belong exclusively to the original artists, composers, lyricists, and authorized record labels.',
+          ownershipStatement: data.ownershipStatement || 'All musical works, sound recordings, performances, and compositions belong exclusively to the original artists, composers, and authorized record labels.',
           loading: false
         });
       })
@@ -203,7 +203,7 @@ export function PlayerOverlay({
             encoding: 'Direct Stream Pure Audio',
             dynamicRange: 'Master Quality Authenticated'
           },
-          ownershipStatement: 'All musical works, sound recordings, performances, and lyrics belong exclusively to the original artists, composers, lyricists, and authorized record labels.',
+          ownershipStatement: 'All musical works, sound recordings, performances, and compositions belong exclusively to the original artists, composers, and authorized record labels.',
           loading: false
         });
       });
@@ -1301,6 +1301,8 @@ export function PlayerOverlay({
         }}
         showToast={triggerToast}
       />
+
+
 
       {/* Toast Notification */}
       {toastMessage && (

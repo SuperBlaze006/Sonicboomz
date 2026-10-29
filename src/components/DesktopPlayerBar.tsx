@@ -167,7 +167,7 @@ export function DesktopPlayerBar({
         <div 
           onClick={onOpenOverlay}
           className="relative w-13 h-13 rounded-xl overflow-hidden shadow-md cursor-pointer group shrink-0 bg-black/10 dark:bg-white/10"
-          title="Click to view full player & lyrics"
+          title="Click to view full player"
         >
           <img
             src={optimizeImage(currentTrack.coverUrl, { width: 140, quality: 80 })}
@@ -351,7 +351,7 @@ export function DesktopPlayerBar({
           title="Open Fullscreen Player & Queue"
         >
           <ListMusic size={18} />
-          <span className="hidden xl:inline">Lyrics & Queue</span>
+          <span className="hidden xl:inline">Player & Queue</span>
         </button>
 
         {/* Volume Controls */}

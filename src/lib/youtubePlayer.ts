@@ -28,12 +28,13 @@ class YouTubeController {
         host.style.position = 'fixed';
         host.style.bottom = '0px';
         host.style.right = '0px';
-        host.style.width = '240px';
-        host.style.height = '240px';
-        host.style.opacity = '0.001';
+        host.style.width = '2px';
+        host.style.height = '2px';
+        host.style.opacity = '0.99';
         host.style.pointerEvents = 'none';
-        host.style.zIndex = '-10';
+        host.style.zIndex = '1';
         host.style.overflow = 'hidden';
+        host.style.clipPath = 'inset(50%)';
         document.body.appendChild(host);
       }
 

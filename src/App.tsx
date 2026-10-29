@@ -1134,6 +1134,7 @@ export default function App() {
       } catch (_) {}
     }
 
+    ytController.setVolume((isMuted ? 0 : volume) * 100);
     ytController.loadAndPlay(targetId);
     setIsPlaying(true);
     setupMediaSession(track);
@@ -1148,6 +1149,10 @@ export default function App() {
     if (requestId !== activeRequestIdRef.current) return;
 
     ensureAudioKeepAlive();
+    // Guarantee correct volume and unmuted state are restored on every track load
+    audio.loop = false;
+    audio.muted = isMuted;
+    audio.volume = isMuted ? 0 : volume;
     audio.src = src;
     setupMediaSession(track);
 
@@ -1161,28 +1166,22 @@ export default function App() {
           await safePlay();
         } catch (_) {
           if (track.id) {
-            playerModeRef.current = 'youtube';
-            setPlayerMode('youtube');
-            ytController.loadAndPlay(track.id);
-            setIsPlaying(true);
+            switchToYouTubePlayer(track.id, track);
           }
         }
       } else if (track.id) {
-        playerModeRef.current = 'youtube';
-        setPlayerMode('youtube');
-        ytController.loadAndPlay(track.id);
-        setIsPlaying(true);
+        switchToYouTubePlayer(track.id, track);
       }
     }
   };
 
-  // Silent background watchdog bot: verifies song moves from 0:00 to 0:01 within 10s, else auto-skips to next song
+  // Playback monitor: recovers stalled playback without auto-skipping or disturbing the user's queue
   const startPlaybackWatchdog = (track: Track, requestId: number) => {
     clearPlaybackWatchdog();
     trackPlayableVerifiedRef.current = false;
     userPausedManuallyRef.current = false;
 
-    // Mid-window silent stream recovery attempt at 4.5s if still stuck at 0:00
+    // Mid-window silent stream recovery attempt at 5s if still stuck at 0:00
     watchdogRecoveryRef.current = setTimeout(() => {
       if (requestId !== activeRequestIdRef.current) return;
       if (trackPlayableVerifiedRef.current || userPausedManuallyRef.current) return;
@@ -1206,9 +1205,9 @@ export default function App() {
         ytController.loadAndPlay(track.id);
         setIsPlaying(true);
       }
-    }, 4500);
+    }, 5000);
 
-    // 10-second strict playability check: if track never reached 0:01 (1 second), auto-switch to next song silently
+    // Watchdog check at 12s: if still buffering, mark idle without auto-skipping the user's queue in a loop
     watchdogTimeoutRef.current = setTimeout(() => {
       if (requestId !== activeRequestIdRef.current) return;
       if (trackPlayableVerifiedRef.current || userPausedManuallyRef.current) return;
@@ -1223,18 +1222,9 @@ export default function App() {
         return;
       }
 
-      // If phone screen is closed / app in background and audio is actively playing or buffering, do not falsely skip
-      if (document.hidden && audio && (!audio.paused || audio.readyState >= 2 || audio.currentTime > 0)) {
-        markTrackPlayableVerified();
-        return;
-      }
-
-      if (track?.id) {
-        delete resolvedUrlsCacheRef.current[track.id];
-      }
-
-      autoSkipUnplayableTrack();
-    }, 10000);
+      // Do NOT auto-skip the song. Leave player state ready so user can tap play or wait for slow buffer.
+      console.warn('Track buffering or awaiting user gesture - leaving controls ready');
+    }, 12000);
   };
 
   const autoSkipUnplayableTrack = async () => {
@@ -1303,6 +1293,12 @@ export default function App() {
     // Safely pause currently playing media immediately across engines (synchronous for 0ms transition)
     safePause();
     ytController.pause();
+
+    const audio = audioRef.current;
+    if (audio) {
+      audio.volume = isMuted ? 0 : volume;
+      audio.muted = isMuted;
+    }
 
     setCurrentTrack(track);
     setQueue(sourceList);

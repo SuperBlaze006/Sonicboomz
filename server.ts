@@ -34,8 +34,8 @@ app.use((req, res, next) => {
 
   // Cloudflare Edge Cache Tiering Middleware (Automatically sets global edge TTLs)
   const path = req.path;
-  if (path.startsWith('/api/lyrics') || path.startsWith('/api/credits') || path.startsWith('/api/song-credits') || path.startsWith('/api/album-tracks')) {
-    // Lifetime / 1-Year Immutable Edge Cache for permanent tracklists, lyrics & credits
+  if (path.startsWith('/api/credits') || path.startsWith('/api/song-credits') || path.startsWith('/api/album-tracks')) {
+    // Lifetime / 1-Year Immutable Edge Cache for permanent tracklists & credits
     res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
   } else if (path.startsWith('/api/artist-details') || path.startsWith('/api/artist-all-songs') || path.startsWith('/api/artist-image') || path.startsWith('/api/batch-artist-images') || path.startsWith('/api/top-artists')) {
     // 7-Day Edge Cache with 1-Day Client Cache for Artist Directories & Discographies
@@ -135,7 +135,6 @@ import { resolveArtistImage } from './server/artistImageService';
 // In-memory cache for ultra-fast repeated queries
 const searchCache = new Map<string, { timestamp: number; results: any[] }>();
 const trendingCache = new Map<string, { timestamp: number; results: any[]; nextPageToken: string | null }>();
-const lyricsCache = new Map<string, { timestamp: number; data: any }>();
 
 // Multi-Source Engine Configuration
 const SEARCH_SOURCES = {
@@ -218,122 +217,6 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
-// Route: /api/lyrics -> Real-time synchronized & plain text lyrics from LRCLIB & Lyrics.ovh
-app.get('/api/lyrics', async (req, res) => {
-  try {
-    const rawTitle = (req.query.title as string || '').trim();
-    const rawArtist = (req.query.artist as string || '').trim();
-
-    if (!rawTitle) return res.status(400).json({ error: 'Title required' });
-
-    // Clean title and artist to remove metadata junk like (Official Video), [4K], etc.
-    const cleanTitle = rawTitle
-      .replace(/\([^)]*official[^)]*\)/gi, '')
-      .replace(/\[[^\]]*official[^\]]*\]/gi, '')
-      .replace(/\([^)]*audio[^)]*\)/gi, '')
-      .replace(/\[[^\]]*audio[^\]]*\]/gi, '')
-      .replace(/\([^)]*video[^)]*\)/gi, '')
-      .replace(/\[[^\]]*video[^\]]*\]/gi, '')
-      .replace(/\([^)]*lyrics[^)]*\)/gi, '')
-      .replace(/\[[^\]]*lyrics[^\]]*\]/gi, '')
-      .replace(/\(feat\.[^)]*\)/gi, '')
-      .replace(/ft\..*$/gi, '')
-      .replace(/["']/g, '')
-      .trim();
-
-    const cleanArtist = rawArtist
-      .replace(/ - Topic|VEVO/gi, '')
-      .trim();
-
-    const cacheKey = `${cleanTitle}::${cleanArtist}`.toLowerCase();
-    const cached = lyricsCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < 60 * 60 * 1000) {
-      return res.json(cached.data);
-    }
-
-    let lyricsData: any = null;
-
-    // 1. Try LRCLIB direct get
-    try {
-      const directUrl = `https://lrclib.net/api/get?track_name=${encodeURIComponent(cleanTitle)}&artist_name=${encodeURIComponent(cleanArtist)}`;
-      const directRes = await fetch(directUrl, { headers: { 'User-Agent': 'BlazeMusic/2.0' }, signal: AbortSignal.timeout(3000) });
-      if (directRes.ok) {
-        lyricsData = await directRes.json();
-      }
-    } catch (e) {
-      // ignore
-    }
-
-    // 2. If not found, try LRCLIB search
-    if (!lyricsData || (!lyricsData.plainLyrics && !lyricsData.syncedLyrics)) {
-      try {
-        const searchUrl = `https://lrclib.net/api/search?q=${encodeURIComponent(`${cleanTitle} ${cleanArtist}`)}`;
-        const searchRes = await fetch(searchUrl, { headers: { 'User-Agent': 'BlazeMusic/2.0' }, signal: AbortSignal.timeout(3000) });
-        if (searchRes.ok) {
-          const results = await searchRes.json();
-          if (Array.isArray(results) && results.length > 0) {
-            lyricsData = results.find((r: any) => r.syncedLyrics || r.plainLyrics) || results[0];
-          }
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    // 3. Fallback to Lyrics.ovh
-    if (!lyricsData || (!lyricsData.plainLyrics && !lyricsData.syncedLyrics)) {
-      try {
-        const ovhUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(cleanArtist)}/${encodeURIComponent(cleanTitle)}`;
-        const ovhRes = await fetch(ovhUrl, { signal: AbortSignal.timeout(3000) });
-        if (ovhRes.ok) {
-          const ovhData = await ovhRes.json();
-          if (ovhData.lyrics) {
-            lyricsData = {
-              plainLyrics: ovhData.lyrics,
-              syncedLyrics: null,
-              instrumental: false
-            };
-          }
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    // Parse LRC lines into { time: number, text: string }
-    const lines: { time: number; text: string }[] = [];
-    if (lyricsData?.syncedLyrics) {
-      const rawLines = lyricsData.syncedLyrics.split('\n');
-      const lrcRegex = /^\[(\d{2}):(\d{2}(?:\.\d{1,3})?)\](.*)$/;
-      for (const line of rawLines) {
-        const match = line.trim().match(lrcRegex);
-        if (match) {
-          const minutes = parseInt(match[1], 10);
-          const seconds = parseFloat(match[2]);
-          const time = minutes * 60 + seconds;
-          const text = match[3].trim();
-          lines.push({ time, text });
-        }
-      }
-    }
-
-    const payload = {
-      title: lyricsData?.trackName || cleanTitle,
-      artist: lyricsData?.artistName || cleanArtist,
-      lines,
-      plainLyrics: lyricsData?.plainLyrics || null,
-      syncedLyrics: lyricsData?.syncedLyrics || null,
-      instrumental: lyricsData?.instrumental || false,
-      found: Boolean(lyricsData && (lyricsData.plainLyrics || lyricsData.syncedLyrics))
-    };
-
-    lyricsCache.set(cacheKey, { timestamp: Date.now(), data: payload });
-    res.json(payload);
-  } catch (err) {
-    console.error('Lyrics endpoint error:', err);
-    res.status(500).json({ error: 'Failed to fetch lyrics' });
-  }
-});
 
 // Route 1.5: /api/suggestions -> Fast autocomplete suggestions
 app.get('/api/suggestions', async (req, res) => {
@@ -2804,7 +2687,7 @@ app.get('/api/credits', async (req, res) => {
         encoding: 'Direct Stream Studio Master',
         dynamicRange: 'Master Quality Authenticated'
       },
-      ownershipStatement: 'All musical works, sound recordings, performances, compositions, and lyrics belong exclusively to the original artists, songwriters, composers, publishers, and their respective copyright holders. Blaze Music is a player interface and does not claim any copyright or ownership.'
+      ownershipStatement: 'All musical works, sound recordings, performances, and compositions belong exclusively to the original artists, songwriters, composers, publishers, and their respective copyright holders. Blaze Music is a player interface and does not claim any copyright or ownership.'
     };
 
     creditsCache.set(cacheKey, { timestamp: Date.now(), data: creditsPayload });
@@ -2944,10 +2827,8 @@ function isStrictTitleMatch(queryTitle: string, candidateTitle: string): boolean
 
   const set2 = new Set(w2);
   const overlap = w1.filter(w => set2.has(w)).length;
-  if (overlap >= Math.min(w1.length, w2.length) || overlap >= 2 || (overlap >= 1 && (w1.length === 1 || w2.length === 1))) {
-    return true;
-  }
-  return false;
+  const ratio = overlap / Math.max(w1.length, w2.length);
+  return ratio >= 0.75 || c1 === c2 || c1.startsWith(c2) || c2.startsWith(c1);
 }
 
 // Helper: Smart artist similarity checker to prevent playing wrong songs by different artists
@@ -2962,7 +2843,8 @@ function isStrictArtistMatch(queryArtist: string, candidateArtist: string): bool
   const qWords = q.split(' ').filter(w => w.length > 2);
   const cWords = c.split(' ').filter(w => w.length > 2);
   if (!qWords.length || !cWords.length) return true;
-  return qWords.some(qw => cWords.includes(qw));
+  const set2 = new Set(cWords);
+  return qWords.some(qw => set2.has(qw));
 }
 
 // Helper: Intelligent audio resolver across search catalogs
@@ -3193,7 +3075,7 @@ app.get('/api/resolve', async (req, res) => {
         }
       }
 
-      // 1. Try resolving via JioSaavn match first (highly recommended to avoid bot blocking and enable full player visuals/lyrics)
+      // 1. Try resolving via JioSaavn match first (for direct 320kbps background stream)
       if (title) {
         try {
           const matched = await matchAndResolveAudio(title as string, artist as string);
@@ -3404,31 +3286,7 @@ app.get('/api/download', async (req, res) => {
   }
 });
 
-// Route 3: /api/lyrics -> Proxies to lrclib
-app.get('/api/lyrics', async (req, res) => {
-  try {
-    const { track, artist } = req.query;
-    if (!track || !artist) return res.status(400).json({ error: 'Track and artist are required' });
 
-    const url = `https://lrclib.net/api/get?track_name=${encodeURIComponent(track as string)}&artist_name=${encodeURIComponent(artist as string)}`;
-    const response = await fetch(url);
-    
-    if (response.status === 404) {
-      return res.json({ syncedLyrics: null });
-    }
-    
-    if (!response.ok) throw new Error('Failed to fetch lyrics');
-    const data = await response.json();
-    
-    res.json({
-      syncedLyrics: data.syncedLyrics,
-      plainLyrics: data.plainLyrics
-    });
-  } catch (error: any) {
-    console.error('Lyrics error:', error);
-    res.status(500).json({ error: 'Failed to fetch lyrics' });
-  }
-});
 
 
 // Route 4: /api/proxy-stream -> Proxies audio streams to bypass hotlink protection

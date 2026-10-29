@@ -33,13 +33,19 @@ export async function onRequestGet(context: { request: Request; env: CloudflareE
   }
 
   // 2. Fetch live parallel results from YouTube, JioSaavn, and iTunes
-  const [ytRes, saavnRes, itunesRes] = await Promise.allSettled([
-    searchYouTube(query, 25),
+  // If query is a multi-word phrase (3+ words), query YouTube with and without 'song' suffix to recognize song titles
+  const isMultiWordSearch = query.split(/\s+/).filter(Boolean).length >= 3;
+  const ytQueries = isMultiWordSearch 
+    ? [searchYouTube(query, 20), searchYouTube(`${query} official song`, 15)]
+    : [searchYouTube(query, 25)];
+
+  const [ytResList, saavnRes, itunesRes] = await Promise.allSettled([
+    Promise.all(ytQueries),
     searchJioSaavn(query, 20, page),
     searchItunes(query, 15)
   ]);
 
-  const ytTracks = ytRes.status === 'fulfilled' ? ytRes.value : [];
+  const ytTracks = ytResList.status === 'fulfilled' ? ytResList.value.flat() : [];
   const saavnTracks = saavnRes.status === 'fulfilled' ? saavnRes.value : [];
   const itunesTracks = itunesRes.status === 'fulfilled' ? itunesRes.value : [];
 

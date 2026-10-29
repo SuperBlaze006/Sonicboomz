@@ -250,7 +250,7 @@ export function BrowseHome({
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium flex items-center gap-1.5">
             <Sparkles size={13} className="text-[var(--theme-color)]" />
             {showSearch 
-              ? 'Search any YouTube song, artist, video or lyrics'
+              ? 'Search any YouTube song, artist, or music video'
               : 'Live Popular Songs on YouTube & Top Music Charts'
             }
           </p>
@@ -265,7 +265,7 @@ export function BrowseHome({
               ref={searchInputRef}
               id="input-global-search"
               type="text" 
-              placeholder="Search YouTube songs, artists, or lyrics..."
+              placeholder="Search YouTube songs, artists, or albums..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleExecuteSearch()}
@@ -414,7 +414,7 @@ export function BrowseHome({
               <Search size={22} />
             </div>
             <p className="font-bold text-base text-gray-800 dark:text-gray-200">No songs found for "{query}"</p>
-            <p className="text-xs text-gray-400 max-w-xs">Try searching for an artist name, official video, or lyrics.</p>
+            <p className="text-xs text-gray-400 max-w-xs">Try searching for an artist name, song title, or album.</p>
             <button 
               onClick={() => { setQuery(''); onSearch(''); }}
               className="mt-2 px-4 py-2 rounded-full bg-[var(--theme-color)] text-white text-xs font-semibold hover:opacity-90 transition-opacity"

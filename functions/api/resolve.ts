@@ -30,18 +30,43 @@ function cleanNoise(str: string): string {
     .replace(/\s+/g, ' ');
 }
 
-// Check title match
-function isTitleMatch(qTitle: string, candidateTitle: string): boolean {
+// Strict title and artist match to prevent playing wrong songs
+function isStrictMatch(qTitle: string, candidateTitle: string, qArtist?: string, candidateArtist?: string): boolean {
   const c1 = cleanNoise(qTitle);
   const c2 = cleanNoise(candidateTitle);
   if (!c1 || !c2) return false;
-  if (c1 === c2 || c1.includes(c2) || c2.includes(c1)) return true;
-  const w1 = c1.split(' ').filter(w => w.length > 2);
-  const w2 = c2.split(' ').filter(w => w.length > 2);
-  if (!w1.length || !w2.length) return false;
-  const set2 = new Set(w2);
-  const overlap = w1.filter(w => set2.has(w)).length;
-  return overlap >= 1;
+
+  // 1. Direct title check
+  let titleMatches = (c1 === c2 || c1.startsWith(c2) || c2.startsWith(c1));
+  if (!titleMatches) {
+    const w1 = c1.split(' ').filter(w => w.length > 2);
+    const w2 = c2.split(' ').filter(w => w.length > 2);
+    if (w1.length > 0 && w2.length > 0) {
+      const set2 = new Set(w2);
+      const overlap = w1.filter(w => set2.has(w)).length;
+      const ratio = overlap / Math.max(w1.length, w2.length);
+      titleMatches = ratio >= 0.75;
+    }
+  }
+
+  if (!titleMatches) return false;
+
+  // 2. Strict artist check if query artist was provided
+  const a1 = cleanNoise(qArtist || '');
+  const a2 = cleanNoise(candidateArtist || '');
+  if (a1 && a2) {
+    const aWords1 = a1.split(' ').filter(w => w.length > 2);
+    const aWords2 = a2.split(' ').filter(w => w.length > 2);
+    if (aWords1.length > 0 && aWords2.length > 0) {
+      const aSet2 = new Set(aWords2);
+      const hasArtistOverlap = aWords1.some(w => aSet2.has(w));
+      if (!hasArtistOverlap && !a1.includes(a2) && !a2.includes(a1)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 // Resolve JioSaavn stream by ID
@@ -79,7 +104,7 @@ async function resolveJioSaavnById(songId: string): Promise<{ url: string; bitra
   return null;
 }
 
-// Search and resolve JioSaavn by Title & Artist
+// Search and strictly resolve JioSaavn by Title & Artist
 async function matchSaavnBySearch(title: string, artist: string): Promise<{ url: string; bitrate: string; format: string } | null> {
   try {
     const cleanT = cleanNoise(title);
@@ -96,7 +121,8 @@ async function matchSaavnBySearch(title: string, artist: string): Promise<{ url:
 
     for (const item of items) {
       const songTitle = item.song || item.title || '';
-      if (isTitleMatch(title, songTitle)) {
+      const songArtist = item.singers || item.primary_artists || '';
+      if (isStrictMatch(title, songTitle, artist, songArtist)) {
         if (item.id) {
           const stream = await resolveJioSaavnById(item.id);
           if (stream) return stream;
@@ -117,30 +143,6 @@ async function matchSaavnBySearch(title: string, artist: string): Promise<{ url:
   return null;
 }
 
-// Search iTunes for high quality AAC preview audio stream
-async function matchItunes(title: string, artist: string): Promise<{ url: string; bitrate: string; format: string } | null> {
-  try {
-    const cleanT = cleanNoise(title);
-    const cleanA = cleanNoise(artist);
-    const query = `${cleanT} ${cleanA}`.trim();
-    const searchUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=4`;
-    const res = await fetch(searchUrl, { signal: AbortSignal.timeout(3000) });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const results: any[] = data.results || [];
-    for (const item of results) {
-      if (item.previewUrl) {
-        return {
-          url: item.previewUrl,
-          bitrate: '256kbps',
-          format: 'audio/mp4'
-        };
-      }
-    }
-  } catch (_) {}
-  return null;
-}
-
 export async function onRequestGet(context: { request: Request }) {
   const { request } = context;
   const url = new URL(request.url);
@@ -150,7 +152,23 @@ export async function onRequestGet(context: { request: Request }) {
   const title = (url.searchParams.get('title') || '').trim();
   const artist = (url.searchParams.get('artist') || '').trim();
 
-  // 1. iTunes Track Resolution
+  // 1. Direct JioSaavn ID Resolution
+  if (source === 'jiosaavn' || id.startsWith('saavn_') || (/^[a-zA-Z0-9_-]{5,20}$/.test(id) && !id.startsWith('dynamic-') && id.length !== 11)) {
+    const saavnId = id.replace('saavn_', '');
+    const saavnStream = await resolveJioSaavnById(saavnId);
+    if (saavnStream) {
+      return jsonResponse({
+        isYouTube: false,
+        id,
+        url: saavnStream.url,
+        audioUrl: saavnStream.url,
+        bitrate: saavnStream.bitrate,
+        format: saavnStream.format
+      });
+    }
+  }
+
+  // 2. iTunes Track Resolution (Only if explicit iTunes ID)
   if (id.startsWith('itunes_') || source === 'itunes') {
     const itunesId = id.replace('itunes_', '');
     try {
@@ -172,26 +190,36 @@ export async function onRequestGet(context: { request: Request }) {
     } catch (_) {}
   }
 
-  // 2. Direct JioSaavn ID Resolution
-  if (source === 'jiosaavn' || id.startsWith('saavn_') || /^[a-zA-Z0-9_-]{5,20}$/.test(id) && !id.startsWith('dynamic-') && id.length !== 11) {
-    const saavnId = id.replace('saavn_', '');
-    const saavnStream = await resolveJioSaavnById(saavnId);
-    if (saavnStream) {
-      return jsonResponse({
-        isYouTube: false,
-        id,
-        url: saavnStream.url,
-        audioUrl: saavnStream.url,
-        bitrate: saavnStream.bitrate,
-        format: saavnStream.format
-      });
+  // 3. For YouTube tracks or search results:
+  // If user selected a valid 11-character YouTube video ID:
+  if (id && id.length === 11 && !id.startsWith('dynamic-') && !id.includes('_')) {
+    // Check if an EXACT studio match exists in JioSaavn (320kbps full stream with lockscreen background audio)
+    if (title) {
+      const saavnMatched = await matchSaavnBySearch(title, artist);
+      if (saavnMatched) {
+        return jsonResponse({
+          isYouTube: false,
+          id,
+          url: saavnMatched.url,
+          audioUrl: saavnMatched.url,
+          bitrate: saavnMatched.bitrate,
+          format: saavnMatched.format
+        });
+      }
     }
+
+    // Play the exact authentic YouTube video the user selected
+    return jsonResponse({
+      isYouTube: true,
+      id,
+      embedUrl: `https://www.youtube.com/embed/${id}?autoplay=1&enablejsapi=1`,
+      bitrate: 'Original HQ Audio',
+      format: 'youtube/iframe'
+    });
   }
 
-  // 3. High-Priority Direct Audio Stream Match (Enables Mobile Background Playback)
-  // Query JioSaavn and iTunes for real audio stream URLs so HTML5 <audio> can play continuously with screen locked
+  // 4. Fallback: Search JioSaavn first for title & artist
   if (title) {
-    // A. Match via JioSaavn catalog (320kbps / 160kbps MP4/AAC)
     const saavnMatched = await matchSaavnBySearch(title, artist);
     if (saavnMatched) {
       return jsonResponse({
@@ -203,25 +231,11 @@ export async function onRequestGet(context: { request: Request }) {
         format: saavnMatched.format
       });
     }
-
-    // B. Match via iTunes catalog (256kbps AAC)
-    const itunesMatched = await matchItunes(title, artist);
-    if (itunesMatched) {
-      return jsonResponse({
-        isYouTube: false,
-        id,
-        url: itunesMatched.url,
-        audioUrl: itunesMatched.url,
-        bitrate: itunesMatched.bitrate,
-        format: itunesMatched.format
-      });
-    }
   }
 
-  // 4. Authentic YouTube resolution if direct audio stream is unavailable
-  let resolvedYtId = (id && id.length === 11 && !id.startsWith('dynamic-') && !id.includes('_')) ? id : null;
-
-  if (!resolvedYtId && (title || artist)) {
+  // 5. Authentic YouTube search resolution if ID is dynamic or missing
+  let resolvedYtId: string | null = null;
+  if (title || artist) {
     try {
       const ytMatches = await searchYouTube(`${artist} ${title} official audio`, 3);
       if (ytMatches.length > 0 && ytMatches[0].id) {

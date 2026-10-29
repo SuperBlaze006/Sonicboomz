@@ -49,7 +49,7 @@ export default defineConfig(() => {
           navigateFallbackDenylist: [/^\/api/],
           runtimeCaching: [
             {
-              urlPattern: /^\/api\/.*/i,
+              urlPattern: /^\/api\/(?!proxy-audio).*/i,
               handler: 'NetworkFirst',
               options: {
                 cacheName: 'sonic-api-cache',

@@ -1082,7 +1082,7 @@ export function HomeView({
               ref={searchInputRef}
               id="input-home-search"
               type="text"
-              placeholder="Search songs, artists, albums, or lyrics..."
+              placeholder="Search songs, artists, or albums..."
               value={query}
               onFocus={() => setIsSearchActive(true)}
               onChange={(e) => {

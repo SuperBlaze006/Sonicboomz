@@ -35,7 +35,7 @@ export async function onRequest(context: EventContext): Promise<Response> {
 
     // Apply Tiered Cloudflare Edge Cache headers if not already specified
     if (!newHeaders.has('Cache-Control')) {
-      if (path.startsWith('/api/lyrics') || path.startsWith('/api/credits') || path.startsWith('/api/song-credits') || path.startsWith('/api/album-tracks')) {
+      if (path.startsWith('/api/credits') || path.startsWith('/api/song-credits') || path.startsWith('/api/album-tracks')) {
         newHeaders.set('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
       } else if (path.startsWith('/api/artist-details') || path.startsWith('/api/artist-all-songs') || path.startsWith('/api/artist-image') || path.startsWith('/api/batch-artist-images') || path.startsWith('/api/top-artists')) {
         newHeaders.set('Cache-Control', 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400');
